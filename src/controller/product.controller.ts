@@ -1,0 +1,326 @@
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// Create a new product
+export const createProduct = async (req: Request, res: Response) => {
+  try {
+    const {
+      name,
+      mrp,
+      productCode,
+      description,
+      expiryDate,
+      validity,
+      quantity,
+      tags,
+      imageUrl,
+      categoryId,
+      groupId,
+      subCategoryId,
+      grammage,
+    } = req.body;
+
+    // Check if product code already exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { productCode },
+    });
+
+    if (existingProduct) {
+      return res.status(409).json({ message: "Product code already exists" });
+    }
+
+    // Verify that category, group, and subcategory exist
+    const [category, group, subCategory] = await Promise.all([
+      prisma.category.findUnique({ where: { id: categoryId } }),
+      prisma.group.findUnique({ where: { id: groupId } }),
+      prisma.subCategory.findUnique({ where: { id: subCategoryId } }),
+    ]);
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub-category not found" });
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        mrp,
+        productCode,
+        description,
+        expiryDate: new Date(expiryDate),
+        validity,
+        quantity,
+        tags: tags || [],
+        imageUrl,
+        categoryId,
+        groupId,
+        subCategoryId,
+        grammage,
+      },
+      include: {
+        category: true,
+        group: true,
+        subCategory: true,
+      },
+    });
+
+    res.status(201).json({ product });
+  } catch (error) {
+    console.error("Error creating product:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all products with pagination and filtering
+export const getProducts = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      categoryId,
+      groupId,
+      subCategoryId,
+      minPrice,
+      maxPrice,
+    } = req.query as any;
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { productCode: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
+    if (groupId) {
+      where.groupId = groupId;
+    }
+
+    if (subCategoryId) {
+      where.subCategoryId = subCategoryId;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.mrp = {};
+      if (minPrice !== undefined) where.mrp.gte = minPrice;
+      if (maxPrice !== undefined) where.mrp.lte = maxPrice;
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          category: true,
+          group: true,
+          subCategory: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching products:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get a single product by ID
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        group: true,
+        subCategory: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json({ product });
+  } catch (error) {
+    console.error("Error fetching product:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Update a product
+export const updateProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // If product code is being updated, check for uniqueness
+    if (updateData.productCode && updateData.productCode !== existingProduct.productCode) {
+      const duplicateProduct = await prisma.product.findUnique({
+        where: { productCode: updateData.productCode },
+      });
+
+      if (duplicateProduct) {
+        return res.status(409).json({ message: "Product code already exists" });
+      }
+    }
+
+    // Verify that category, group, and subcategory exist if they're being updated
+    if (updateData.categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: updateData.categoryId },
+      });
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+    }
+
+    if (updateData.groupId) {
+      const group = await prisma.group.findUnique({
+        where: { id: updateData.groupId },
+      });
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+    }
+
+    if (updateData.subCategoryId) {
+      const subCategory = await prisma.subCategory.findUnique({
+        where: { id: updateData.subCategoryId },
+      });
+      if (!subCategory) {
+        return res.status(404).json({ message: "Sub-category not found" });
+      }
+    }
+
+    // Convert expiryDate string to Date if provided
+    if (updateData.expiryDate) {
+      updateData.expiryDate = new Date(updateData.expiryDate);
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: updateData,
+      include: {
+        category: true,
+        group: true,
+        subCategory: true,
+      },
+    });
+
+    res.json({ product });
+  } catch (error) {
+    console.error("Error updating product:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Delete a product
+export const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Check if product is used in any orders
+    const orderItems = await prisma.orderItem.findMany({
+      where: { productId: id },
+    });
+
+    if (orderItems.length > 0) {
+      return res.status(400).json({
+        message: "Cannot delete product as it is associated with existing orders",
+      });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get product statistics
+export const getProductStats = async (req: Request, res: Response) => {
+  try {
+    const [totalProducts, lowStockProducts, totalValue] = await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({
+        where: { quantity: { lte: 10 } },
+      }),
+      prisma.product.aggregate({
+        _sum: {
+          mrp: true,
+        },
+      }),
+    ]);
+
+    const averagePrice = totalProducts > 0 ? totalValue._sum.mrp! / totalProducts : 0;
+
+    res.json({
+      stats: {
+        totalProducts,
+        lowStockProducts,
+        totalValue: totalValue._sum.mrp || 0,
+        averagePrice: Math.round(averagePrice),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching product stats:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
