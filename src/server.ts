@@ -24,7 +24,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World! Edited");
 });
 
 // endpoints
