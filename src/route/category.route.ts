@@ -17,13 +17,13 @@ import { validateAccessToken } from "../middleware/auth.middleware";
 const router = express.Router();
 
 // Protected routes - require authentication
-router.use(validateAccessToken);
+// router.use(validateAccessToken);
 
 // Category routes
-router.post("/categories", validateCreateCategory, createCategory);
-router.get("/categories", getCategories);
-router.get("/categories/:id", getCategoryById);
-router.put("/categories/:id", validateUpdateCategory, updateCategory);
-router.delete("/categories/:id", deleteCategory);
+router.post("/", validateCreateCategory, createCategory);
+router.get("/", getCategories);
+router.get("/:id", getCategoryById);
+router.put("/:id", validateUpdateCategory, updateCategory);
+router.delete("/:id", deleteCategory);
 
 export default router;

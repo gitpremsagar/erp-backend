@@ -199,7 +199,7 @@ GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000
 ## Group Endpoints
 
 ### 1. Create Group
-**POST** `/categories/groups`
+**POST** `/groups`
 
 **Request Body:**
 ```json
@@ -209,17 +209,87 @@ GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000
 }
 ```
 
+**Response:**
+```json
+{
+  "group": {
+    "id": "507f1f77bcf86cd799439012",
+    "name": "Premium",
+    "description": "Premium quality products",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
 ### 2. Get All Groups
-**GET** `/categories/groups`
+**GET** `/groups`
+
+**Response:**
+```json
+{
+  "groups": [
+    {
+      "id": "507f1f77bcf86cd799439012",
+      "name": "Premium",
+      "description": "Premium quality products",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
 
 ### 3. Get Group by ID
-**GET** `/categories/groups/:id`
+**GET** `/groups/:id`
+
+**Response:**
+```json
+{
+  "group": {
+    "id": "507f1f77bcf86cd799439012",
+    "name": "Premium",
+    "description": "Premium quality products",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "Product": [...]
+  }
+}
+```
 
 ### 4. Update Group
-**PUT** `/categories/groups/:id`
+**PUT** `/groups/:id`
+
+**Request Body:**
+```json
+{
+  "name": "Premium Plus",
+  "description": "Premium plus quality products"
+}
+```
+
+**Response:**
+```json
+{
+  "group": {
+    "id": "507f1f77bcf86cd799439012",
+    "name": "Premium Plus",
+    "description": "Premium plus quality products",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
 
 ### 5. Delete Group
-**DELETE** `/categories/groups/:id`
+**DELETE** `/groups/:id`
+
+**Response:**
+```json
+{
+  "message": "Group deleted successfully"
+}
+```
 
 ---
 
