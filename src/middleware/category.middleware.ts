@@ -20,7 +20,7 @@ export const validateCreateCategory = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Create Category Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -39,7 +39,7 @@ export const validateUpdateCategory = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Update Category Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -59,7 +59,7 @@ export const validateCreateGroup = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Create Group Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -78,7 +78,7 @@ export const validateUpdateGroup = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Update Group Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -98,7 +98,7 @@ export const validateCreateSubCategory = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Create SubCategory Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -117,7 +117,7 @@ export const validateUpdateSubCategory = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Update SubCategory Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });

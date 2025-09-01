@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
+
+// this line is inserted by Prem Sagar
 // Route Handlers
 const auth_route_1 = __importDefault(require("./route/auth.route"));
 const blogPost_route_1 = __importDefault(require("./route/blogPost.route"));

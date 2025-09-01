@@ -12,7 +12,7 @@ export const validateCreateProduct = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Create Product Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -31,7 +31,7 @@ export const validateUpdateProduct = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Update Product Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
@@ -50,7 +50,7 @@ export const validateProductQuery = (
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Product Query Validation error:\n", error);
-      res.status(400).json({ message: error.errors });
+      res.status(400).json({ message: error });
       return;
     }
     res.status(500).json({ message: "Internal server error" });
