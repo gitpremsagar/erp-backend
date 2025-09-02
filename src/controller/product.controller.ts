@@ -13,7 +13,19 @@ export const createProduct = async (req: Request, res: Response) => {
       description,
       expiryDate,
       validity,
-      quantity,
+      stock,
+      stockEntryDate,
+      lowStockLimit,
+      overStockLimit,
+      lowStockAlertColor,
+      lowStockAlertMessage,
+      overStockAlertColor,
+      overStockAlertMessage,
+      inStockAlertColor,
+      inStockAlertMessage,
+      expiryAlertDays,
+      expiryAlertColor,
+      expiryAlertMessage,
       tags,
       imageUrl,
       categoryId,
@@ -56,7 +68,19 @@ export const createProduct = async (req: Request, res: Response) => {
         description,
         expiryDate: new Date(expiryDate),
         validity,
-        quantity,
+        stock,
+        stockEntryDate: new Date(stockEntryDate),
+        lowStockLimit: lowStockLimit || 0,
+        overStockLimit: overStockLimit || 0,
+        lowStockAlertColor: lowStockAlertColor || "#008000",
+        lowStockAlertMessage: lowStockAlertMessage || "Low Stock",
+        overStockAlertColor: overStockAlertColor || "#FF0000",
+        overStockAlertMessage: overStockAlertMessage || "Over Stock",
+        inStockAlertColor: inStockAlertColor || "#00008B",
+        inStockAlertMessage: inStockAlertMessage || "In Stock",
+        expiryAlertDays: expiryAlertDays || 0,
+        expiryAlertColor: expiryAlertColor || "#FF0000",
+        expiryAlertMessage: expiryAlertMessage || "Expired",
         tags: tags || [],
         imageUrl,
         categoryId,
@@ -65,9 +89,9 @@ export const createProduct = async (req: Request, res: Response) => {
         grammage,
       },
       include: {
-        category: true,
-        group: true,
-        subCategory: true,
+        Category: true,
+        Group: true,
+        SubCategory: true,
       },
     });
 
@@ -129,9 +153,9 @@ export const getProducts = async (req: Request, res: Response) => {
         skip,
         take: limit,
         include: {
-          category: true,
-          group: true,
-          subCategory: true,
+          Category: true,
+          Group: true,
+          SubCategory: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -165,9 +189,9 @@ export const getProductById = async (req: Request, res: Response) => {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
-        group: true,
-        subCategory: true,
+        Category: true,
+        Group: true,
+        SubCategory: true,
       },
     });
 
@@ -236,18 +260,21 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // Convert expiryDate string to Date if provided
+    // Convert date strings to Date objects if provided
     if (updateData.expiryDate) {
       updateData.expiryDate = new Date(updateData.expiryDate);
+    }
+    if (updateData.stockEntryDate) {
+      updateData.stockEntryDate = new Date(updateData.stockEntryDate);
     }
 
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
       include: {
-        category: true,
-        group: true,
-        subCategory: true,
+        Category: true,
+        Group: true,
+        SubCategory: true,
       },
     });
 
@@ -300,7 +327,7 @@ export const getProductStats = async (req: Request, res: Response) => {
     const [totalProducts, lowStockProducts, totalValue] = await Promise.all([
       prisma.product.count(),
       prisma.product.count({
-        where: { quantity: { lte: 10 } },
+        where: { stock: { lte: 10 } },
       }),
       prisma.product.aggregate({
         _sum: {
