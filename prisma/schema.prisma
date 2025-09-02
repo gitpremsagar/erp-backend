@@ -67,13 +67,13 @@ model Product {
   tags                  String[]
   imageUrl              String
   categoryId            String       @db.ObjectId
-  category              Category     @relation(fields: [categoryId], references: [id])
   groupId               String       @db.ObjectId
-  group                 Group        @relation(fields: [groupId], references: [id])
   subCategoryId         String       @db.ObjectId
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
-  subCategory           SubCategory  @relation(fields: [subCategoryId], references: [id])
+  Group                 Group        @relation(fields: [groupId], references: [id])
+  SubCategory           SubCategory  @relation(fields: [subCategoryId], references: [id])
+  Category              Category     @relation(fields: [categoryId], references: [id])
   OrderItem             OrderItem[]
   StockEntry            StockEntry[]
 }
