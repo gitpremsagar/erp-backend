@@ -263,3 +263,31 @@ export const deleteOrder = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const updateOrderItems = async (req: Request, res: Response) => {
+  //logic to add/remove items from order
+
+  // loop through order items
+
+  //if item exits in order items, then update the quantity
+
+  //if item does not exit in order items, then add the item
+
+  //if item quantity is 0, then delete the item
+};
+
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  //logic to update order status
+
+  //swtich case for order status
+
+  //case PENDING:
+
+  //case MODIFYING:
+
+  //case PACKING:
+
+  //case SHIPPING:
+
+  //case DELIVERED:
+}

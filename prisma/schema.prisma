@@ -181,15 +181,16 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderId      String   @db.ObjectId
-  productId    String   @db.ObjectId
-  quantity     Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deliveryDate DateTime
-  Order        Order    @relation(fields: [orderId], references: [id])
-  Product      Product  @relation(fields: [productId], references: [id])
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId        String   @db.ObjectId
+  productId      String   @db.ObjectId
+  quantity       Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deliveryDate   DateTime
+  orderCompleted Boolean  @default(false) 
+  Order          Order    @relation(fields: [orderId], references: [id])
+  Product        Product  @relation(fields: [productId], references: [id])
 }
 
 model DeliveryAddress {
