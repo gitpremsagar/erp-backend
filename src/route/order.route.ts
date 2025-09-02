@@ -3,7 +3,7 @@ import {
   createOrder,
   getOrders,
   getOrderById,
-  updateOrder,
+
   deleteOrder,
   getOrderStats,
 } from "../controller/order.controller";
@@ -31,8 +31,6 @@ router.get("/stats", getOrderStats);
 // Get a single order by ID
 router.get("/:id", getOrderById);
 
-// Update an order
-router.put("/:id", validateUpdateOrder, updateOrder);
 
 // Delete an order
 router.delete("/:id", deleteOrder);

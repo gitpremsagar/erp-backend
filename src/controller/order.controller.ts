@@ -9,7 +9,7 @@ export const createOrder = async (req: Request, res: Response) => {
     const { customerId, orderItems } = req.body;
 
     // Check if customer exists
-    const customer = await prisma.customer.findUnique({
+    const customer = await prisma.user.findUnique({
       where: { id: customerId },
     });
 
@@ -17,7 +17,7 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    // Check if all products exist and have sufficient stock
+    // Check if all products exist
     for (const item of orderItems) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
@@ -54,7 +54,6 @@ export const createOrder = async (req: Request, res: Response) => {
             orderId: newOrder.id,
             productId: item.productId,
             quantity: item.quantity,
-            grammage: item.grammage,
           },
         });
 
@@ -214,113 +213,6 @@ export const getOrderById = async (req: Request, res: Response) => {
     res.json({ order });
   } catch (error) {
     console.error("Error fetching order:\n", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// Update an order
-export const updateOrder = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status, totalPrice, orderItems } = req.body;
-
-    // Check if order exists
-    const existingOrder = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        OrderItem: true,
-      },
-    });
-
-    if (!existingOrder) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    // If updating order items, handle stock adjustments
-    if (orderItems) {
-      // Calculate stock differences
-      const currentItems = existingOrder.OrderItem;
-      const newItems = orderItems;
-
-      // Restore stock from current items
-      for (const currentItem of currentItems) {
-        await prisma.product.update({
-          where: { id: currentItem.productId },
-          data: {
-            stock: {
-              increment: currentItem.quantity,
-            },
-          },
-        });
-      }
-
-      // Check stock availability for new items
-      for (const item of newItems) {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-        });
-
-        if (!product) {
-          return res.status(404).json({ message: `Product with ID ${item.productId} not found` });
-        }
-
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ 
-            message: `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` 
-          });
-        }
-      }
-
-      // Update order items and adjust stock
-      await prisma.$transaction(async (tx) => {
-        // Delete existing order items
-        await tx.orderItem.deleteMany({
-          where: { orderId: id },
-        });
-
-        // Create new order items and update stock
-        for (const item of newItems) {
-          await tx.orderItem.create({
-            data: {
-              orderId: id,
-              productId: item.productId,
-              quantity: item.quantity,
-              grammage: item.grammage,
-            },
-          });
-
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-        }
-      });
-    }
-
-    // Update the order
-    const updatedOrder = await prisma.order.update({
-      where: { id },
-      data: {
-        ...(status && { status }),
-        ...(totalPrice && { totalPrice }),
-      },
-      include: {
-        customer: true,
-        OrderItem: {
-          include: {
-            Product: true,
-          },
-        },
-      },
-    });
-
-    res.json({ order: updatedOrder });
-  } catch (error) {
-    console.error("Error updating order:\n", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -141,17 +141,17 @@ model SubCategory {
 }
 
 model Order {
-  id                String          @id @default(auto()) @map("_id") @db.ObjectId
-  orderId           String          @unique @default(uuid())
-  status            OrderStatus     @default(PENDING)
-  totalPrice        Int             @default(0)
-  orderDate         DateTime        @default(now())
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  customerId        String          @db.ObjectId
-  customer          User            @relation(fields: [customerId], references: [id])
-  deliveryAddressId String          @db.ObjectId
-  deliveryAddress   DeliveryAddress @relation(fields: [deliveryAddressId], references: [id])
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  orderId           String           @unique @default(uuid())
+  status            OrderStatus      @default(PENDING)
+  totalPrice        Int              @default(0)
+  orderDate         DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  customerId        String           @db.ObjectId
+  customer          User             @relation(fields: [customerId], references: [id])
+  deliveryAddressId String?          @db.ObjectId
+  deliveryAddress   DeliveryAddress? @relation(fields: [deliveryAddressId], references: [id])
   OrderItem         OrderItem[]
 }
 
@@ -181,15 +181,15 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId String   @db.ObjectId
-  quantity  Int
-  grammage  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orderId   String   @db.ObjectId
-  Order     Order    @relation(fields: [orderId], references: [id])
-  Product   Product  @relation(fields: [productId], references: [id])
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId      String   @db.ObjectId
+  productId    String   @db.ObjectId
+  quantity     Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deliveryDate DateTime
+  Order        Order    @relation(fields: [orderId], references: [id])
+  Product      Product  @relation(fields: [productId], references: [id])
 }
 
 model DeliveryAddress {
