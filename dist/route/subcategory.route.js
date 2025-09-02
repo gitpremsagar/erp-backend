@@ -12,6 +12,7 @@ const router = express_1.default.Router();
 // SubCategory routes
 router.post("/", subcategory_middleware_1.validateCreateSubCategory, subcategory_controller_1.createSubCategory);
 router.get("/", subcategory_controller_1.getSubCategories);
+router.get("/category/:categoryId", subcategory_controller_1.getSubCategoriesByCategory);
 router.get("/:id", subcategory_controller_1.getSubCategoryById);
 router.put("/:id", subcategory_middleware_1.validateUpdateSubCategory, subcategory_controller_1.updateSubCategory);
 router.delete("/:id", subcategory_controller_1.deleteSubCategory);

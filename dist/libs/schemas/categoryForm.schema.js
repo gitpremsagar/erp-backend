@@ -42,6 +42,10 @@ exports.CreateSubCategorySchema = zod_1.z.object({
         .min(1, "Description is required")
         .max(500, "Description must be at most 500 characters long")
         .trim(),
+    categoryId: zod_1.z
+        .string()
+        .min(1, "Category ID is required")
+        .trim(),
 });
 exports.UpdateSubCategorySchema = exports.CreateSubCategorySchema.partial();
 //# sourceMappingURL=categoryForm.schema.js.map

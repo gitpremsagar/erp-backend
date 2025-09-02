@@ -9,13 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteSubCategory = exports.updateSubCategory = exports.getSubCategoryById = exports.getSubCategories = exports.createSubCategory = void 0;
+exports.deleteSubCategory = exports.getSubCategoriesByCategory = exports.updateSubCategory = exports.getSubCategoryById = exports.getSubCategories = exports.createSubCategory = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // SubCategory Controllers
 const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description } = req.body;
+        const { name, description, categoryId } = req.body;
         // Check if subcategory name already exists
         const existingSubCategory = yield prisma.subCategory.findUnique({
             where: { name },
@@ -23,9 +23,30 @@ const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (existingSubCategory) {
             return res.status(409).json({ message: "Sub-category name already exists" });
         }
-        const subCategory = yield prisma.subCategory.create({
-            data: { name, description },
+        // Check if category exists
+        const category = yield prisma.category.findUnique({
+            where: { id: categoryId },
         });
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+        const subCategory = yield prisma.subCategory.create({
+            data: {
+                name,
+                description,
+                Category: {
+                    connect: { id: categoryId }
+                }
+            }
+        });
+        // Fetch the created subcategory with category details
+        const subCategoryWithCategory = yield prisma.subCategory.findUnique({
+            where: { id: subCategory.id },
+            include: {
+                Category: true
+            }
+        });
+        res.status(201).json({ subCategory: subCategoryWithCategory });
         res.status(201).json({ subCategory });
     }
     catch (error) {
@@ -38,6 +59,9 @@ const getSubCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const subCategories = yield prisma.subCategory.findMany({
             orderBy: { name: "asc" },
+            include: {
+                Category: true
+            }
         });
         res.json({ subCategories });
     }
@@ -54,6 +78,7 @@ const getSubCategoryById = (req, res) => __awaiter(void 0, void 0, void 0, funct
             where: { id },
             include: {
                 Product: true,
+                Category: true,
             },
         });
         if (!subCategory) {
@@ -70,7 +95,7 @@ exports.getSubCategoryById = getSubCategoryById;
 const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { name, description } = req.body;
+        const { name, description, categoryId } = req.body;
         // Check if subcategory exists
         const existingSubCategory = yield prisma.subCategory.findUnique({
             where: { id },
@@ -87,9 +112,31 @@ const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 return res.status(409).json({ message: "Sub-category name already exists" });
             }
         }
+        // If categoryId is being updated, check if category exists
+        if (categoryId) {
+            const category = yield prisma.category.findUnique({
+                where: { id: categoryId },
+            });
+            if (!category) {
+                return res.status(404).json({ message: "Category not found" });
+            }
+        }
+        const updateData = {};
+        if (name)
+            updateData.name = name;
+        if (description)
+            updateData.description = description;
+        if (categoryId) {
+            updateData.Category = {
+                connect: { id: categoryId }
+            };
+        }
         const subCategory = yield prisma.subCategory.update({
             where: { id },
-            data: { name, description },
+            data: updateData,
+            include: {
+                Category: true
+            }
         });
         res.json({ subCategory });
     }
@@ -99,6 +146,31 @@ const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.updateSubCategory = updateSubCategory;
+const getSubCategoriesByCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { categoryId } = req.params;
+        // Check if category exists
+        const category = yield prisma.category.findUnique({
+            where: { id: categoryId },
+        });
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+        const subCategories = yield prisma.subCategory.findMany({
+            where: { categoryId },
+            orderBy: { name: "asc" },
+            include: {
+                Category: true
+            }
+        });
+        res.json({ subCategories });
+    }
+    catch (error) {
+        console.error("Error fetching sub-categories by category:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getSubCategoriesByCategory = getSubCategoriesByCategory;
 const deleteSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;

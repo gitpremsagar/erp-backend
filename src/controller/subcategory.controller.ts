@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // SubCategory Controllers
 export const createSubCategory = async (req: Request, res: Response) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, categoryId } = req.body;
 
     // Check if subcategory name already exists
     const existingSubCategory = await prisma.subCategory.findUnique({
@@ -17,9 +17,34 @@ export const createSubCategory = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Sub-category name already exists" });
     }
 
-    const subCategory = await prisma.subCategory.create({
-      data: { name, description },
+    // Check if category exists
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
     });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const subCategory = await prisma.subCategory.create({
+      data: { 
+        name, 
+        description, 
+        Category: {
+          connect: { id: categoryId }
+        }
+      }
+    });
+
+    // Fetch the created subcategory with category details
+    const subCategoryWithCategory = await prisma.subCategory.findUnique({
+      where: { id: subCategory.id },
+      include: {
+        Category: true
+      }
+    });
+
+    res.status(201).json({ subCategory: subCategoryWithCategory });
 
     res.status(201).json({ subCategory });
   } catch (error) {
@@ -32,6 +57,9 @@ export const getSubCategories = async (req: Request, res: Response) => {
   try {
     const subCategories = await prisma.subCategory.findMany({
       orderBy: { name: "asc" },
+      include: {
+        Category: true
+      }
     });
 
     res.json({ subCategories });
@@ -49,6 +77,7 @@ export const getSubCategoryById = async (req: Request, res: Response) => {
       where: { id },
       include: {
         Product: true,
+        Category: true,
       },
     });
 
@@ -66,7 +95,7 @@ export const getSubCategoryById = async (req: Request, res: Response) => {
 export const updateSubCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, categoryId } = req.body;
 
     // Check if subcategory exists
     const existingSubCategory = await prisma.subCategory.findUnique({
@@ -88,14 +117,65 @@ export const updateSubCategory = async (req: Request, res: Response) => {
       }
     }
 
+    // If categoryId is being updated, check if category exists
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+    }
+
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (description) updateData.description = description;
+    if (categoryId) {
+      updateData.Category = {
+        connect: { id: categoryId }
+      };
+    }
+
     const subCategory = await prisma.subCategory.update({
       where: { id },
-      data: { name, description },
+      data: updateData,
+      include: {
+        Category: true
+      }
     });
 
     res.json({ subCategory });
   } catch (error) {
     console.error("Error updating sub-category:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getSubCategoriesByCategory = async (req: Request, res: Response) => {
+  try {
+    const { categoryId } = req.params;
+
+    // Check if category exists
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const subCategories = await prisma.subCategory.findMany({
+      where: { categoryId },
+      orderBy: { name: "asc" },
+      include: {
+        Category: true
+      }
+    });
+
+    res.json({ subCategories });
+  } catch (error) {
+    console.error("Error fetching sub-categories by category:\n", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

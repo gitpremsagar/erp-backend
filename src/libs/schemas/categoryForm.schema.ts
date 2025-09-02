@@ -44,6 +44,10 @@ export const CreateSubCategorySchema = z.object({
     .min(1, "Description is required")
     .max(500, "Description must be at most 500 characters long")
     .trim(),
+  categoryId: z
+    .string()
+    .min(1, "Category ID is required")
+    .trim(),
 });
 
 export const UpdateSubCategorySchema = CreateSubCategorySchema.partial();
