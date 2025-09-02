@@ -99,11 +99,12 @@ model Group {
 }
 
 model Category {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String        @unique
   description String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  SubCategory SubCategory[]
   Product     Product[]
 }
 
@@ -113,6 +114,8 @@ model SubCategory {
   description String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  categoryId  String    @db.ObjectId
+  Category    Category  @relation(fields: [categoryId], references: [id])
   Product     Product[]
 }
 
