@@ -16,22 +16,43 @@ datasource db {
 
 enum UserType {
   ADMIN
+  ORDER_PROCESSOR
   CUSTOMER
   EMPLOYEE
 }
 
 model User {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  email       String        @unique
-  phone       String
-  name        String
-  password    String
-  privilegeId String        @db.ObjectId
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  privilege   UserPrivilege @relation(fields: [privilegeId], references: [id])
-  StockEntry  StockEntry[]
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  email           String            @unique
+  phone           String
+  name            String
+  password        String
+  privilegeId     String            @db.ObjectId
+  aadharNumber    Int?
+  pan             String?
+  gstNumber       String?
+  address         String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  privilege       UserPrivilege     @relation(fields: [privilegeId], references: [id])
+  StockEntry      StockEntry[]
+  Order           Order[]
+  DeliveryAddress DeliveryAddress[]
 }
+
+// model Customer {
+//   id           String   @id @default(auto()) @map("_id") @db.ObjectId
+//   name         String
+//   aadharNumber Int
+//   email        String
+//   phone        String
+//   address      String
+//   pan          String
+//   gstNumber    String
+//   createdAt    DateTime @default(now())
+//   updatedAt    DateTime @updatedAt
+//   Order        Order[]
+// }
 
 model UserPrivilege {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -120,21 +141,23 @@ model SubCategory {
 }
 
 model Order {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  orderId    String      @unique @default(uuid())
-  status     OrderStatus @default(PENDING)
-  totalPrice Int
-  orderDate  DateTime    @default(now())
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  customerId String      @db.ObjectId
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  OrderItem  OrderItem[]
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  orderId           String          @unique @default(uuid())
+  status            OrderStatus     @default(PENDING)
+  totalPrice        Int             @default(0)
+  orderDate         DateTime        @default(now())
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  customerId        String          @db.ObjectId
+  customer          User            @relation(fields: [customerId], references: [id])
+  deliveryAddressId String          @db.ObjectId
+  deliveryAddress   DeliveryAddress @relation(fields: [deliveryAddressId], references: [id])
+  OrderItem         OrderItem[]
 }
 
 model OriginalOrder {
-  id                String             @id @default(auto()) @map("_id") @db.ObjectId
-  orginalOrderId    String             @db.ObjectId
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  orginalOrderId    String              @db.ObjectId
   orderDate         DateTime
   createdAt         DateTime
   OriginalOrderItem OriginalOrderItem[]
@@ -169,18 +192,15 @@ model OrderItem {
   Product   Product  @relation(fields: [productId], references: [id])
 }
 
-model Customer {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  name         String
-  aadharNumber Int
-  email        String
-  phone        String
-  address      String
-  pan          String
-  gstNumber    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  Order        Order[]
+model DeliveryAddress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  default   Boolean  @default(false)
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id])
+  Order     Order[]
 }
 
 model Vehicle {
