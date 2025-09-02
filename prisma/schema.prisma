@@ -171,9 +171,16 @@ model Customer {
 
 model Vehicle {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  vehicleNumber String
-  vehicleType   String
+  vehicleName   String
+  vehicleNumber String   @unique
+  vehicleType   VehicleType
   capacity      Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+enum VehicleType {
+  TRUCK
+  PICKUP
+  OTHER
 }

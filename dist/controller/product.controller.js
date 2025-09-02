@@ -1,30 +1,21 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProductStats = exports.deleteProduct = exports.updateProduct = exports.getProductById = exports.getProducts = exports.createProduct = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // Create a new product
-const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createProduct = async (req, res) => {
     try {
         const { name, mrp, productCode, description, expiryDate, validity, stock, stockEntryDate, lowStockLimit, overStockLimit, lowStockAlertColor, lowStockAlertMessage, overStockAlertColor, overStockAlertMessage, inStockAlertColor, inStockAlertMessage, expiryAlertDays, expiryAlertColor, expiryAlertMessage, tags, imageUrl, categoryId, groupId, subCategoryId, grammage, } = req.body;
         // Check if product code already exists
-        const existingProduct = yield prisma.product.findUnique({
+        const existingProduct = await prisma.product.findUnique({
             where: { productCode },
         });
         if (existingProduct) {
             return res.status(409).json({ message: "Product code already exists" });
         }
         // Verify that category, group, and subcategory exist
-        const [category, group, subCategory] = yield Promise.all([
+        const [category, group, subCategory] = await Promise.all([
             prisma.category.findUnique({ where: { id: categoryId } }),
             prisma.group.findUnique({ where: { id: groupId } }),
             prisma.subCategory.findUnique({ where: { id: subCategoryId } }),
@@ -38,7 +29,7 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!subCategory) {
             return res.status(404).json({ message: "Sub-category not found" });
         }
-        const product = yield prisma.product.create({
+        const product = await prisma.product.create({
             data: {
                 name,
                 mrp,
@@ -78,10 +69,10 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.error("Error creating product:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.createProduct = createProduct;
 // Get all products with pagination and filtering
-const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getProducts = async (req, res) => {
     try {
         const { page = 1, limit = 10, search, categoryId, groupId, subCategoryId, minPrice, maxPrice, } = req.query;
         const skip = (page - 1) * limit;
@@ -110,7 +101,7 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             if (maxPrice !== undefined)
                 where.mrp.lte = maxPrice;
         }
-        const [products, total] = yield Promise.all([
+        const [products, total] = await Promise.all([
             prisma.product.findMany({
                 where,
                 skip,
@@ -141,13 +132,13 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         console.error("Error fetching products:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.getProducts = getProducts;
 // Get a single product by ID
-const getProductById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getProductById = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = yield prisma.product.findUnique({
+        const product = await prisma.product.findUnique({
             where: { id },
             include: {
                 Category: true,
@@ -164,15 +155,15 @@ const getProductById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         console.error("Error fetching product:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.getProductById = getProductById;
 // Update a product
-const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
         // Check if product exists
-        const existingProduct = yield prisma.product.findUnique({
+        const existingProduct = await prisma.product.findUnique({
             where: { id },
         });
         if (!existingProduct) {
@@ -180,7 +171,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // If product code is being updated, check for uniqueness
         if (updateData.productCode && updateData.productCode !== existingProduct.productCode) {
-            const duplicateProduct = yield prisma.product.findUnique({
+            const duplicateProduct = await prisma.product.findUnique({
                 where: { productCode: updateData.productCode },
             });
             if (duplicateProduct) {
@@ -189,7 +180,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // Verify that category, group, and subcategory exist if they're being updated
         if (updateData.categoryId) {
-            const category = yield prisma.category.findUnique({
+            const category = await prisma.category.findUnique({
                 where: { id: updateData.categoryId },
             });
             if (!category) {
@@ -197,7 +188,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         }
         if (updateData.groupId) {
-            const group = yield prisma.group.findUnique({
+            const group = await prisma.group.findUnique({
                 where: { id: updateData.groupId },
             });
             if (!group) {
@@ -205,7 +196,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         }
         if (updateData.subCategoryId) {
-            const subCategory = yield prisma.subCategory.findUnique({
+            const subCategory = await prisma.subCategory.findUnique({
                 where: { id: updateData.subCategoryId },
             });
             if (!subCategory) {
@@ -219,7 +210,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (updateData.stockEntryDate) {
             updateData.stockEntryDate = new Date(updateData.stockEntryDate);
         }
-        const product = yield prisma.product.update({
+        const product = await prisma.product.update({
             where: { id },
             data: updateData,
             include: {
@@ -234,21 +225,21 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.error("Error updating product:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.updateProduct = updateProduct;
 // Delete a product
-const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
         // Check if product exists
-        const existingProduct = yield prisma.product.findUnique({
+        const existingProduct = await prisma.product.findUnique({
             where: { id },
         });
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
         // Check if product is used in any orders
-        const orderItems = yield prisma.orderItem.findMany({
+        const orderItems = await prisma.orderItem.findMany({
             where: { productId: id },
         });
         if (orderItems.length > 0) {
@@ -256,7 +247,7 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 message: "Cannot delete product as it is associated with existing orders",
             });
         }
-        yield prisma.product.delete({
+        await prisma.product.delete({
             where: { id },
         });
         res.json({ message: "Product deleted successfully" });
@@ -265,12 +256,12 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.error("Error deleting product:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.deleteProduct = deleteProduct;
 // Get product statistics
-const getProductStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getProductStats = async (req, res) => {
     try {
-        const [totalProducts, lowStockProducts, totalValue] = yield Promise.all([
+        const [totalProducts, lowStockProducts, totalValue] = await Promise.all([
             prisma.product.count(),
             prisma.product.count({
                 where: { stock: { lte: 10 } },
@@ -295,6 +286,6 @@ const getProductStats = (req, res) => __awaiter(void 0, void 0, void 0, function
         console.error("Error fetching product stats:\n", error);
         res.status(500).json({ message: "Internal server error" });
     }
-});
+};
 exports.getProductStats = getProductStats;
 //# sourceMappingURL=product.controller.js.map

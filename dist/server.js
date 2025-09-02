@@ -12,6 +12,7 @@ const product_route_1 = __importDefault(require("./route/product.route"));
 const category_route_1 = __importDefault(require("./route/category.route"));
 const group_route_1 = __importDefault(require("./route/group.route"));
 const subcategory_route_1 = __importDefault(require("./route/subcategory.route"));
+const vehicle_route_1 = __importDefault(require("./route/vehicle.route"));
 const app = (0, express_1.default)();
 // allow all origins
 app.use((0, cors_1.default)({
@@ -30,8 +31,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", auth_route_1.default);
 app.use("/api/products", product_route_1.default);
 app.use("/api/categories", category_route_1.default);
-app.use("/api/groups", group_route_1.default);
 app.use("/api/sub-categories", subcategory_route_1.default);
+app.use("/api/groups", group_route_1.default);
+app.use("/api/vehicles", vehicle_route_1.default);
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
