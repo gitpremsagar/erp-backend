@@ -34,7 +34,7 @@ app.use("/api/auth", authRouteHandler);
 app.use("/api/products", productRouteHandler);
 app.use("/api/categories", categoryRouteHandler);
 app.use("/api/groups", groupRouteHandler);
-app.use("/api/subcategories", subcategoryRouteHandler);
+app.use("/api/sub-categories", subcategoryRouteHandler);
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
