@@ -132,14 +132,28 @@ model Order {
   OrderItem  OrderItem[]
 }
 
+model OriginalOrder {
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  orginalOrderId    String             @db.ObjectId
+  orderDate         DateTime
+  createdAt         DateTime
+  OriginalOrderItem OriginalOrderItem[]
+}
+
+model OriginalOrderItem {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  orginalOrderId String        @db.ObjectId
+  productId      String        @db.ObjectId
+  quantity       Int
+  OriginalOrder  OriginalOrder @relation(fields: [orginalOrderId], references: [id])
+}
+
 enum OrderStatus {
   PENDING
   MODIFYING
   PACKING
   SHIPPING
   DELIVERED
-  CANCELLED
-  RETURNED
   COMPLETED
 }
 
@@ -170,13 +184,13 @@ model Customer {
 }
 
 model Vehicle {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
   vehicleName   String
-  vehicleNumber String   @unique
+  vehicleNumber String      @unique
   vehicleType   VehicleType
   capacity      Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 enum VehicleType {
