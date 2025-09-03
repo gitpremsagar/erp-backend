@@ -4,18 +4,27 @@ exports.SignupFormSchema = void 0;
 const zod_1 = require("zod");
 exports.SignupFormSchema = zod_1.z
     .object({
-    email: zod_1.z.email("Invalid email format"),
+    email: zod_1.z.string().email("Invalid email format"),
     password: zod_1.z
         .string()
         .min(6, "Password must be at least 6 characters long")
         .max(100, "Password must be at most 100 characters long")
         .trim(),
-    type: zod_1.z.enum(["USER", "ADMIN"]),
     name: zod_1.z
         .string()
         .min(2, "Name must be at least 2 characters long")
         .max(100, "Name must be at most 100 characters long")
         .trim(),
+    phone: zod_1.z
+        .string()
+        .min(10, "Phone number must be at least 10 digits")
+        .max(15, "Phone number must be at most 15 digits")
+        .trim()
+        .optional(),
+    aadharNumber: zod_1.z.number().optional(),
+    pan: zod_1.z.string().optional(),
+    gstNumber: zod_1.z.string().optional(),
+    address: zod_1.z.string().optional(),
     confirmPassword: zod_1.z
         .string()
         .min(6, "Confirm Password must be at least 6 characters long")

@@ -5,6 +5,7 @@ import { defaultCategories } from "./defaultCategories";
 import { defaultGroups } from "./defaultGroups";
 import { defaultSubCategories } from "./defaultSubCategories";
 import { defaultProducts } from "./defaultProducts";
+import { defaultCustomers } from "./defaultCustomers";
 
 const prisma = new PrismaClient();
 
@@ -185,6 +186,51 @@ export const seedDatabase = async () => {
       }
     } else {
       console.log("⏭️  Default admin user already exists");
+    }
+
+    // Seed customers
+    console.log("👥 Seeding customers...");
+    const customerPrivilege = await prisma.userPrivilege.findFirst({
+      where: { name: "CUSTOMER" },
+    });
+
+    if (!customerPrivilege) {
+      console.log("❌ Customer privilege not found, skipping customer seeding");
+    } else {
+      for (const customer of defaultCustomers) {
+        const existingCustomer = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: customer.email },
+              { phone: customer.phone },
+              ...(customer.aadharNumber ? [{ aadharNumber: customer.aadharNumber }] : []),
+              ...(customer.pan ? [{ pan: customer.pan }] : []),
+              ...(customer.gstNumber ? [{ gstNumber: customer.gstNumber }] : []),
+            ],
+          },
+        });
+
+        if (!existingCustomer) {
+          const hashedPassword = await bcrypt.hash("customer123", 10);
+          
+          await prisma.user.create({
+            data: {
+              name: customer.name,
+              email: customer.email,
+              phone: customer.phone,
+              password: hashedPassword,
+              privilegeId: customerPrivilege.id,
+              aadharNumber: customer.aadharNumber,
+              pan: customer.pan,
+              gstNumber: customer.gstNumber,
+              address: customer.address || "Business Address",
+            },
+          });
+          console.log(`✅ Created customer: ${customer.name} (${customer.email})`);
+        } else {
+          console.log(`⏭️  Customer already exists: ${customer.name} (${customer.email})`);
+        }
+      }
     }
 
     // Create a sample customer user if it doesn't exist

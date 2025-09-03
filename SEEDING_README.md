@@ -55,7 +55,14 @@ A comprehensive collection of Haldiram-style products including:
 - **Grocery**: Basmati Rice, essential staples
 - **Special Products**: Diwali Special Mix, Sugar-Free Ladoo, Kids Snack Pack
 
-### 6. Default Users
+### 6. Customers
+27 business customers with complete business details including:
+- **Business Names**: AGARWAL CREATION, A G GENERAL STORE, ARUN ENTERPRISES, etc.
+- **Contact Information**: Email addresses and phone numbers
+- **Business Documents**: Aadhar numbers, PAN numbers, and GST numbers
+- **Default Password**: All customers use "customer123" as their initial password
+
+### 7. Default Users
 - **Admin User**: admin@edigitalindia.com / admin123
 - **Sample Customer**: customer@example.com / customer123
 
@@ -86,7 +93,8 @@ The seeding process follows this order:
 3. **Groups** - Creates product quality and target market groups
 4. **Subcategories** - Creates subcategories linked to their parent categories
 5. **Products** - Creates sample products with proper category, group, and subcategory relationships
-6. **Default Users** - Creates admin and sample customer accounts
+6. **Customers** - Creates 27 business customers with complete business details
+7. **Default Users** - Creates admin and sample customer accounts
 
 ## Product Features
 

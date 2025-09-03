@@ -207,7 +207,7 @@ export const getCustomerById = async (req: Request, res: Response) => {
     }
 
     // Check if user is actually a customer
-    if (customer.privilege.name !== "CUSTOMER") {
+    if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 
@@ -236,7 +236,7 @@ export const updateCustomer = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (existingCustomer.privilege.name !== "CUSTOMER") {
+    if (!existingCustomer.privilege || existingCustomer.privilege.name !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 
@@ -299,7 +299,7 @@ export const deleteCustomer = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (customer.privilege.name !== "CUSTOMER") {
+    if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 

@@ -11,6 +11,8 @@ router.post("/sign-up", auth_middleware_1.validateSignupForm, auth_controller_1.
 router.post("/sign-in", auth_middleware_1.validateSigninForm, auth_controller_1.signin);
 router.post("/sign-out", auth_controller_1.signout);
 router.post("/decode-access-token", auth_middleware_1.validateAccessToken, auth_controller_1.decodeAccessToken);
+router.get("/profile", auth_middleware_1.validateAccessToken, auth_controller_1.getUserProfile);
+router.post("/assign-privilege", auth_middleware_1.validateAccessToken, auth_middleware_1.validateAssignPrivilege, auth_controller_1.assignPrivilege);
 router.post("/refresh-access-token", auth_controller_1.refreshAccessToken);
 router.post("/forgot-password", auth_controller_1.forgotPassword);
 router.post("/change-password", auth_controller_1.changePassword);

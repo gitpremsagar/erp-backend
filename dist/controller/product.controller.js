@@ -6,7 +6,12 @@ const prisma = new client_1.PrismaClient();
 // Create a new product
 const createProduct = async (req, res) => {
     try {
-        const { name, mrp, productCode, description, expiryDate, validity, stock, stockEntryDate, lowStockLimit, overStockLimit, lowStockAlertColor, lowStockAlertMessage, overStockAlertColor, overStockAlertMessage, inStockAlertColor, inStockAlertMessage, expiryAlertDays, expiryAlertColor, expiryAlertMessage, tags, imageUrl, categoryId, groupId, subCategoryId, grammage, } = req.body;
+        const { name, mrp, productCode, description, expiryDate, validity, stock, stockEntryDate, lowStockLimit, overStockLimit, lowStockAlertColor, lowStockAlertMessage, overStockAlertColor, overStockAlertMessage, inStockAlertColor, inStockAlertMessage, expiryAlertDays, expiryAlertColor, expiryAlertMessage, tags, categoryId, groupId, subCategoryId, grammage, } = req.body;
+        // Get user ID from request (assuming it's set by auth middleware)
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
         // Check if product code already exists
         const existingProduct = await prisma.product.findUnique({
             where: { productCode },
@@ -29,41 +34,56 @@ const createProduct = async (req, res) => {
         if (!subCategory) {
             return res.status(404).json({ message: "Sub-category not found" });
         }
-        const product = await prisma.product.create({
-            data: {
-                name,
-                mrp,
-                productCode,
-                description,
-                expiryDate: new Date(expiryDate),
-                validity,
-                stock,
-                stockEntryDate: new Date(stockEntryDate),
-                lowStockLimit: lowStockLimit || 0,
-                overStockLimit: overStockLimit || 0,
-                lowStockAlertColor: lowStockAlertColor || "#008000",
-                lowStockAlertMessage: lowStockAlertMessage || "Low Stock",
-                overStockAlertColor: overStockAlertColor || "#FF0000",
-                overStockAlertMessage: overStockAlertMessage || "Over Stock",
-                inStockAlertColor: inStockAlertColor || "#00008B",
-                inStockAlertMessage: inStockAlertMessage || "In Stock",
-                expiryAlertDays: expiryAlertDays || 0,
-                expiryAlertColor: expiryAlertColor || "#FF0000",
-                expiryAlertMessage: expiryAlertMessage || "Expired",
-                tags: tags || [],
-                imageUrl,
-                categoryId,
-                groupId,
-                subCategoryId,
-                grammage,
-            },
-            include: {
-                Category: true,
-                Group: true,
-                SubCategory: true,
-            },
+        // Create product and stock entry in a transaction
+        const result = await prisma.$transaction(async (tx) => {
+            const product = await tx.product.create({
+                data: {
+                    name,
+                    mrp,
+                    productCode,
+                    description,
+                    expiryDate: new Date(expiryDate),
+                    validity,
+                    stock,
+                    stockEntryDate: new Date(stockEntryDate),
+                    lowStockLimit: lowStockLimit || 20, // TODO: get from stock setting
+                    overStockLimit: overStockLimit || 100, // TODO: get from stock setting
+                    lowStockAlertColor: lowStockAlertColor || "#008000", // TODO: get from stock setting
+                    lowStockAlertMessage: lowStockAlertMessage || "Low Stock", // TODO: get from stock setting
+                    overStockAlertColor: overStockAlertColor || "#FF0000", // TODO: get from stock setting
+                    overStockAlertMessage: overStockAlertMessage || "Over Stock", // TODO: get from stock setting
+                    inStockAlertColor: inStockAlertColor || "#00008B", // TODO: get from stock setting
+                    inStockAlertMessage: inStockAlertMessage || "In Stock", // TODO: get from stock setting
+                    expiryAlertDays: expiryAlertDays || 5, // TODO: get from stock setting
+                    expiryAlertColor: expiryAlertColor || "#FF0000", // TODO: get from stock setting
+                    expiryAlertMessage: expiryAlertMessage || "Expired", // TODO: get from stock setting
+                    tags: tags || [],
+                    imageUrl: "http://example.com/image.jpg",
+                    categoryId,
+                    groupId,
+                    subCategoryId,
+                    grammage,
+                },
+                include: {
+                    Category: true,
+                    Group: true,
+                    SubCategory: true,
+                },
+            });
+            // Create stock entry record
+            const stockEntry = await tx.stockEntry.create({
+                data: {
+                    productId: product.id,
+                    changeInStock: stock,
+                    updatedBy: userId,
+                },
+            });
+            return { product, stockEntry };
         });
-        res.status(201).json({ product });
+        res.status(201).json({
+            product: result.product,
+            stockEntry: result.stockEntry,
+        });
     }
     catch (error) {
         console.error("Error creating product:\n", error);
@@ -75,7 +95,10 @@ exports.createProduct = createProduct;
 const getProducts = async (req, res) => {
     try {
         const { page = 1, limit = 10, search, categoryId, groupId, subCategoryId, minPrice, maxPrice, } = req.query;
-        const skip = (page - 1) * limit;
+        // Convert string values to numbers
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 10;
+        const skip = (pageNum - 1) * limitNum;
         // Build where clause
         const where = {};
         if (search) {
@@ -105,7 +128,7 @@ const getProducts = async (req, res) => {
             prisma.product.findMany({
                 where,
                 skip,
-                take: limit,
+                take: limitNum, // Now it's a number
                 include: {
                     Category: true,
                     Group: true,
@@ -115,16 +138,16 @@ const getProducts = async (req, res) => {
             }),
             prisma.product.count({ where }),
         ]);
-        const totalPages = Math.ceil(total / limit);
+        const totalPages = Math.ceil(total / limitNum);
         res.json({
             products,
             pagination: {
-                page,
-                limit,
+                page: pageNum, // Use the converted number
+                limit: limitNum, // Use the converted number
                 total,
                 totalPages,
-                hasNext: page < totalPages,
-                hasPrev: page > 1,
+                hasNext: pageNum < totalPages,
+                hasPrev: pageNum > 1,
             },
         });
     }
@@ -170,7 +193,8 @@ const updateProduct = async (req, res) => {
             return res.status(404).json({ message: "Product not found" });
         }
         // If product code is being updated, check for uniqueness
-        if (updateData.productCode && updateData.productCode !== existingProduct.productCode) {
+        if (updateData.productCode &&
+            updateData.productCode !== existingProduct.productCode) {
             const duplicateProduct = await prisma.product.findUnique({
                 where: { productCode: updateData.productCode },
             });

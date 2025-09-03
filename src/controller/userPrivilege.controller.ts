@@ -8,7 +8,7 @@ export const createUserPrivilege = async (req: Request, res: Response) => {
     const { name, description } = req.body;
 
     // Check if privilege with same name already exists
-    const existingPrivilege = await prisma.userPrivilege.findUnique({
+    const existingPrivilege = await prisma.userPrivilege.findFirst({
       where: { name },
     });
 
@@ -81,7 +81,7 @@ export const updateUserPrivilege = async (req: Request, res: Response) => {
 
     // If name is being updated, check for duplicates
     if (name && name !== existingPrivilege.name) {
-      const duplicatePrivilege = await prisma.userPrivilege.findUnique({
+      const duplicatePrivilege = await prisma.userPrivilege.findFirst({
         where: { name },
       });
 
