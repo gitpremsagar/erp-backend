@@ -38,6 +38,7 @@ model User {
   StockEntry      StockEntry[]
   Order           Order[]
   DeliveryAddress DeliveryAddress[]
+  OrderItem       OrderItem[]
 }
 
 // model Customer {
@@ -155,24 +156,24 @@ model Order {
   deliveryAddressId String?          @db.ObjectId
   deliveryAddress   DeliveryAddress? @relation(fields: [deliveryAddressId], references: [id])
   OrderItem         OrderItem[]
-  originalOrderId   String?            @db.ObjectId
+  originalOrderId   String?          @db.ObjectId
 }
 
 model OriginalOrder {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  originalOrderId    String              @db.ObjectId
+  originalOrderId   String              @db.ObjectId
   orderDate         DateTime
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   OriginalOrderItem OriginalOrderItem[]
 }
 
 model OriginalOrderItem {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
   originalOrderId String        @db.ObjectId
-  productId      String        @db.ObjectId
-  quantity       Int
-  OriginalOrder  OriginalOrder @relation(fields: [originalOrderId], references: [id])
+  productId       String        @db.ObjectId
+  quantity        Int
+  OriginalOrder   OriginalOrder @relation(fields: [originalOrderId], references: [id])
 }
 
 enum OrderStatus {
@@ -185,16 +186,18 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderId        String   @db.ObjectId
-  productId      String   @db.ObjectId
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId        String    @db.ObjectId
+  productId      String    @db.ObjectId
   quantity       Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   deliveryDate   DateTime?
-  orderCompleted Boolean  @default(false)
-  Order          Order    @relation(fields: [orderId], references: [id])
-  Product        Product  @relation(fields: [productId], references: [id])
+  orderCompleted Boolean   @default(false)
+  Order          Order     @relation(fields: [orderId], references: [id])
+  Product        Product   @relation(fields: [productId], references: [id])
+  customerId     String    @db.ObjectId
+  Customer       User      @relation(fields: [customerId], references: [id])
 }
 
 model DeliveryAddress {

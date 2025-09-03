@@ -152,12 +152,12 @@ export const getOrderItems = async (req: Request, res: Response) => {
 };
 
 // Get a single order item by ID
-export const getOrderItemById = async (req: Request, res: Response) => {
+export const getProducOrderHistory = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { productId } = req.params;
 
-    const orderItem = await prisma.orderItem.findUnique({
-      where: { id },
+    const productOrderHistory = await prisma.orderItem.findMany({
+      where: { productId },
       include: {
         Order: true,
         Product: {
@@ -170,13 +170,30 @@ export const getOrderItemById = async (req: Request, res: Response) => {
       },
     });
 
-    if (!orderItem) {
-      return res.status(404).json({ message: "Order item not found" });
+    if (!productOrderHistory) {
+      return res.status(404).json({ message: "Product order history not found" });
     }
 
-    res.json({ orderItem });
+    res.json({ productOrderHistory });
   } catch (error) {
-    console.error("Error fetching order item:\n", error);
+    console.error("Error fetching produc order history:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get a history of product order by customer id and product id
+export const getCustomerProductOrderHistory = async (req: Request, res: Response) => {
+  try {
+    const { customerId, productId } = req.params;
+    const customerProductOrderHistory = await prisma.orderItem.findMany({
+      where: { customerId, productId },
+      include: {
+        Order: true,
+        Product: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching customer product order history:\n", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

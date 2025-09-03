@@ -2,10 +2,11 @@ import express from "express";
 import {
   createOrderItem,
   getOrderItems,
-  getOrderItemById,
+  getProducOrderHistory,
   updateOrderItem,
   deleteOrderItem,
   getOrderItemStats,
+  getCustomerProductOrderHistory,
 } from "../controller/orderItem.controller";
 import {
   validateCreateOrderItem,
@@ -28,8 +29,11 @@ router.get("/", validateOrderItemQuery, getOrderItems);
 // Get order item statistics
 router.get("/stats", getOrderItemStats);
 
-// Get a single order item by ID
-router.get("/:id", getOrderItemById);
+// Get a histor of product by product id
+router.get("/product-order-history/:productId", getProducOrderHistory);
+
+// Get a history of product order by customer id and product id
+router.get("/customer-product-order-history/:customerId/:productId", getCustomerProductOrderHistory);
 
 // Update an order item
 router.put("/:id", validateUpdateOrderItem, updateOrderItem);
