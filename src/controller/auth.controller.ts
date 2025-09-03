@@ -10,7 +10,17 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware";
 const prisma = new PrismaClient();
 
 export const signup = async (req: Request, res: Response) => {
-  const { email, password, name, phone, privilegeId } = req.body;
+  const { 
+    email, 
+    password, 
+    name, 
+    phone, 
+    privilegeId, 
+    aadharNumber, 
+    pan, 
+    gstNumber, 
+    address 
+  } = req.body;
 
   //check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -41,14 +51,24 @@ export const signup = async (req: Request, res: Response) => {
         name,
         phone,
         privilegeId,
+        aadharNumber,
+        pan,
+        gstNumber,
+        address,
       },
       include: {
         privilege: true,
       },
     });
 
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
     // Send response
-    res.status(201).json({ user });
+    res.status(201).json({ 
+      message: "User created successfully",
+      user: userWithoutPassword 
+    });
     return;
   } catch (error) {
     console.error("Error creating user:\n", error);
@@ -59,7 +79,7 @@ export const signup = async (req: Request, res: Response) => {
 
 export const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  // Implement login logic here
+  
   const user = await prisma.user.findUnique({ 
     where: { email },
     include: {
@@ -75,11 +95,19 @@ export const signin = async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
+  // Remove password from user data
+  const { password: _, ...userWithoutPassword } = user;
+  
   const userData = {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    privilege: user.privilege,
+    id: userWithoutPassword.id,
+    email: userWithoutPassword.email,
+    name: userWithoutPassword.name,
+    phone: userWithoutPassword.phone,
+    privilege: userWithoutPassword.privilege,
+    aadharNumber: userWithoutPassword.aadharNumber,
+    pan: userWithoutPassword.pan,
+    gstNumber: userWithoutPassword.gstNumber,
+    address: userWithoutPassword.address,
   };
 
   // Generate JWT tokens
@@ -99,7 +127,6 @@ export const signin = async (req: Request, res: Response) => {
   .cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    // maxAge: +process.env.REFRESH_TOKEN_COOKIE_EXPIRY!,
     maxAge: 1000 * 60 * 60 * 24 * 7,
     sameSite: "none",
     path: "/",
@@ -108,7 +135,7 @@ export const signin = async (req: Request, res: Response) => {
     maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY!,
     path: "/",
   })
-  .json({ accessToken, user:userData });
+  .json({ accessToken, user: userData });
   return;
 };
 
@@ -118,9 +145,9 @@ export const signout = async (req: Request, res: Response) => {
     .status(204)
     .cookie("refreshToken", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Match signin setting
+      secure: process.env.NODE_ENV === "production",
       maxAge: 0,
-      sameSite: "none", // Match signin setting
+      sameSite: "none",
       path: "/",
     })
     .cookie("accessToken", "", {
@@ -133,7 +160,7 @@ export const signout = async (req: Request, res: Response) => {
 
 export const refreshAccessToken = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
-  // console.log("Cookie is\n", req.cookies);
+  
   if (!refreshToken) {
     console.log("Refreshing access token failed: Refresh token is missing");
     return res.status(401).json({ message: "Refresh token is missing" });
@@ -155,18 +182,26 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
+    // Remove password from user data
+    const { password: _, ...userWithoutPassword } = user;
+    
     const userData = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      privilege: user.privilege,
+      id: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      name: userWithoutPassword.name,
+      phone: userWithoutPassword.phone,
+      privilege: userWithoutPassword.privilege,
+      aadharNumber: userWithoutPassword.aadharNumber,
+      pan: userWithoutPassword.pan,
+      gstNumber: userWithoutPassword.gstNumber,
+      address: userWithoutPassword.address,
     };
 
     // Generate new access token
     const accessToken = jwt.sign(
       { ...userData },
       process.env.ACCESS_TOKEN_JWT_SECRET!,
-      { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY! } // Remove '+' if using "1h" etc.
+      { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY! }
     );
 
     res.cookie("accessToken", accessToken, {
@@ -193,15 +228,65 @@ export const decodeAccessToken = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  res.send(req.user);
+  try {
+    // Get fresh user data from database
+    const user = await prisma.user.findUnique({
+      where: { id: (req.user as any).id },
+      include: {
+        privilege: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error("Error decoding access token:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getUserProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = (req.user as any).id;
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        privilege: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error("Error getting user profile:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
   // Implement forgot password logic here
+  res.status(501).json({ message: "Not implemented yet" });
 };
 
 export const changePassword = async (req: Request, res: Response) => {
   const { oldPassword, newPassword } = req.body;
   // Implement change password logic here
+  res.status(501).json({ message: "Not implemented yet" });
 };
