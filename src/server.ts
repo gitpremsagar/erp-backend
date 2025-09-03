@@ -11,6 +11,7 @@ import groupRouteHandler from "./route/group.route";
 import subcategoryRouteHandler from "./route/subcategory.route";
 import vehicleRouteHandler from "./route/vehicle.route";
 import orderRouteHandler from "./route/order.route";
+import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
 
 const app = express();
@@ -40,6 +41,7 @@ app.use("/api/sub-categories", subcategoryRouteHandler);
 app.use("/api/groups", groupRouteHandler);
 app.use("/api/vehicles", vehicleRouteHandler);
 app.use("/api/orders", orderRouteHandler);
+app.use("/api/order-items", orderItemRouteHandler);
 app.use("/api/customers", customerRouteHandler);
 
 const PORT = process.env.PORT || 3008;

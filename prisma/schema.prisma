@@ -191,7 +191,7 @@ model OrderItem {
   quantity       Int
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  deliveryDate   DateTime
+  deliveryDate   DateTime?
   orderCompleted Boolean  @default(false)
   Order          Order    @relation(fields: [orderId], references: [id])
   Product        Product  @relation(fields: [productId], references: [id])

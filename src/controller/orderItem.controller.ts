@@ -1,0 +1,337 @@
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// Create a new order item
+export const createOrderItem = async (req: Request, res: Response) => {
+  try {
+    const {
+      orderId,
+      productId,
+      quantity,
+      orderCompleted = false,
+    } = req.body;
+
+    // Check if order exists
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Check if product has sufficient stock
+    if (product.stock < quantity) {
+      return res.status(400).json({ 
+        message: `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}` 
+      });
+    }
+
+    // Create order item
+    const orderItem = await prisma.orderItem.create({
+      data: {
+        orderId,
+        productId,
+        quantity,
+        orderCompleted,
+      },
+      include: {
+        Order: true,
+        Product: {
+          include: {
+            Category: true,
+            Group: true,
+            SubCategory: true,
+          },
+        },
+      },
+    });
+
+    // Update product stock
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        stock: product.stock - quantity,
+      },
+    });
+
+    // Create stock entry record
+    await prisma.stockEntry.create({
+      data: {
+        productId,
+        changeInStock: -quantity,
+        // TODO: fix it
+        // updatedBy: req.user?.id || "system", // Assuming user info is available in req.user
+        updatedBy: "system",
+      },
+    });
+
+    res.status(201).json({ orderItem });
+  } catch (error) {
+    console.error("Error creating order item:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all order items with pagination and filtering
+export const getOrderItems = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      orderId,
+      productId,
+      orderCompleted,
+    } = req.query as any;
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: any = {};
+
+    if (orderId) {
+      where.orderId = orderId;
+    }
+
+    if (productId) {
+      where.productId = productId;
+    }
+
+    if (orderCompleted !== undefined) {
+      where.orderCompleted = orderCompleted;
+    }
+
+    const [orderItems, total] = await Promise.all([
+      prisma.orderItem.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          Order: true,
+          Product: {
+            include: {
+              Category: true,
+              Group: true,
+              SubCategory: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.orderItem.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      orderItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order items:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get a single order item by ID
+export const getOrderItemById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const orderItem = await prisma.orderItem.findUnique({
+      where: { id },
+      include: {
+        Order: true,
+        Product: {
+          include: {
+            Category: true,
+            Group: true,
+            SubCategory: true,
+          },
+        },
+      },
+    });
+
+    if (!orderItem) {
+      return res.status(404).json({ message: "Order item not found" });
+    }
+
+    res.json({ orderItem });
+  } catch (error) {
+    console.error("Error fetching order item:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Update an order item
+export const updateOrderItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Check if order item exists
+    const existingOrderItem = await prisma.orderItem.findUnique({
+      where: { id },
+      include: {
+        Product: true,
+      },
+    });
+
+    if (!existingOrderItem) {
+      return res.status(404).json({ message: "Order item not found" });
+    }
+
+    // If quantity is being updated, handle stock changes
+    if (updateData.quantity !== undefined) {
+      const quantityDifference = updateData.quantity - existingOrderItem.quantity;
+      
+      if (quantityDifference > 0) {
+        // Check if product has sufficient stock for increase
+        if (existingOrderItem.Product.stock < quantityDifference) {
+          return res.status(400).json({ 
+            message: `Insufficient stock. Available: ${existingOrderItem.Product.stock}, Additional needed: ${quantityDifference}` 
+          });
+        }
+      }
+
+      // Update product stock
+      await prisma.product.update({
+        where: { id: existingOrderItem.productId },
+        data: {
+          stock: existingOrderItem.Product.stock - quantityDifference,
+        },
+      });
+
+      // Create stock entry record
+      await prisma.stockEntry.create({
+        data: {
+          productId: existingOrderItem.productId,
+          changeInStock: -quantityDifference,
+          // TODO: fix it
+          // updatedBy: req.user?.id || "system",
+          updatedBy: "system",
+        },
+      });
+    }
+
+    // Convert date string to Date object if provided
+    if (updateData.deliveryDate) {
+      updateData.deliveryDate = new Date(updateData.deliveryDate);
+    }
+
+    const orderItem = await prisma.orderItem.update({
+      where: { id },
+      data: updateData,
+      include: {
+        Order: true,
+        Product: {
+          include: {
+            Category: true,
+            Group: true,
+            SubCategory: true,
+          },
+        },
+      },
+    });
+
+    res.json({ orderItem });
+  } catch (error) {
+    console.error("Error updating order item:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Delete an order item
+export const deleteOrderItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Check if order item exists
+    const existingOrderItem = await prisma.orderItem.findUnique({
+      where: { id },
+      include: {
+        Product: true,
+      },
+    });
+
+    if (!existingOrderItem) {
+      return res.status(404).json({ message: "Order item not found" });
+    }
+
+    // Restore product stock
+    await prisma.product.update({
+      where: { id: existingOrderItem.productId },
+      data: {
+        stock: existingOrderItem.Product.stock + existingOrderItem.quantity,
+      },
+    });
+
+    // Create stock entry record
+    await prisma.stockEntry.create({
+      data: {
+        productId: existingOrderItem.productId,
+        changeInStock: existingOrderItem.quantity,
+        // TODO: fix it
+        // updatedBy: req.user?.id || "system",
+        updatedBy: "system",
+      },
+    });
+
+    // Delete the order item
+    await prisma.orderItem.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Order item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting order item:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get order item statistics
+export const getOrderItemStats = async (req: Request, res: Response) => {
+  try {
+    const [totalOrderItems, completedOrderItems, pendingOrderItems] = await Promise.all([
+      prisma.orderItem.count(),
+      prisma.orderItem.count({
+        where: { orderCompleted: true },
+      }),
+      prisma.orderItem.count({
+        where: { orderCompleted: false },
+      }),
+    ]);
+
+    const completionRate = totalOrderItems > 0 ? (completedOrderItems / totalOrderItems) * 100 : 0;
+
+    res.json({
+      stats: {
+        totalOrderItems,
+        completedOrderItems,
+        pendingOrderItems,
+        completionRate: Math.round(completionRate * 100) / 100,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order item stats:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
