@@ -24,13 +24,15 @@ export const createOrder = async (req: Request, res: Response) => {
       });
 
       if (!product) {
-        return res.status(404).json({ message: `Product with ID ${item.productId} not found` });
+        return res
+          .status(404)
+          .json({ message: `Product with ID ${item.productId} not found` });
       }
 
       // order will get modified manually
       // if (product.stock < item.quantity) {
-      //   return res.status(400).json({ 
-      //     message: `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` 
+      //   return res.status(400).json({
+      //     message: `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
       //   });
       // }
     }
@@ -54,6 +56,7 @@ export const createOrder = async (req: Request, res: Response) => {
             orderId: newOrder.id,
             productId: item.productId,
             quantity: item.quantity,
+            deliveryDate: new Date(),
           },
         });
 
@@ -107,15 +110,15 @@ export const getOrders = async (req: Request, res: Response) => {
 
     // Build where clause
     const where: any = {};
-    
+
     if (status) {
       where.status = status;
     }
-    
+
     if (customerId) {
       where.customerId = customerId;
     }
-    
+
     if (startDate || endDate) {
       where.orderDate = {};
       if (startDate) {
@@ -166,16 +169,17 @@ export const getOrders = async (req: Request, res: Response) => {
 // Get order statistics
 export const getOrderStats = async (req: Request, res: Response) => {
   try {
-    const [totalOrders, pendingOrders, completedOrders, totalRevenue] = await Promise.all([
-      prisma.order.count(),
-      prisma.order.count({ where: { status: "PENDING" } }),
-      prisma.order.count({ where: { status: "COMPLETED" } }),
-      prisma.order.aggregate({
-        _sum: {
-          totalPrice: true,
-        },
-      }),
-    ]);
+    const [totalOrders, pendingOrders, completedOrders, totalRevenue] =
+      await Promise.all([
+        prisma.order.count(),
+        prisma.order.count({ where: { status: "PENDING" } }),
+        prisma.order.count({ where: { status: "COMPLETED" } }),
+        prisma.order.aggregate({
+          _sum: {
+            totalPrice: true,
+          },
+        }),
+      ]);
 
     res.json({
       totalOrders,
@@ -192,10 +196,10 @@ export const getOrderStats = async (req: Request, res: Response) => {
 // Get a single order by ID
 export const getOrderById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { orderId } = req.params;
 
     const order = await prisma.order.findUnique({
-      where: { id },
+      where: { id: orderId },
       include: {
         customer: true,
         OrderItem: {
@@ -217,14 +221,31 @@ export const getOrderById = async (req: Request, res: Response) => {
   }
 };
 
+// Update an order
+export const updateOrder = async (req: Request, res: Response) => {
+  const { orderId } = req.params;
+  const { status, customerId, vehicleId  } = req.body;
+  //logic to update order
+
+  try {
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: { status, customerId, vehicleId },
+    });
+  } catch (error) {
+    console.error("Error updating order:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // Delete an order
 export const deleteOrder = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { orderId } = req.params;
 
     // Check if order exists
     const order = await prisma.order.findUnique({
-      where: { id },
+      where: { id: orderId },
       include: {
         OrderItem: true,
       },
@@ -249,11 +270,11 @@ export const deleteOrder = async (req: Request, res: Response) => {
     // Delete order items and order
     await prisma.$transaction(async (tx) => {
       await tx.orderItem.deleteMany({
-        where: { orderId: id },
+        where: { orderId: orderId },
       });
-      
+
       await tx.order.delete({
-        where: { id },
+        where: { id: orderId },
       });
     });
 
@@ -263,31 +284,3 @@ export const deleteOrder = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-export const updateOrderItems = async (req: Request, res: Response) => {
-  //logic to add/remove items from order
-
-  // loop through order items
-
-  //if item exits in order items, then update the quantity
-
-  //if item does not exit in order items, then add the item
-
-  //if item quantity is 0, then delete the item
-};
-
-export const updateOrderStatus = async (req: Request, res: Response) => {
-  //logic to update order status
-
-  //swtich case for order status
-
-  //case PENDING:
-
-  //case MODIFYING:
-
-  //case PACKING:
-
-  //case SHIPPING:
-
-  //case DELIVERED:
-}

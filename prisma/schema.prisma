@@ -142,7 +142,7 @@ model SubCategory {
 
 model Order {
   id                String           @id @default(auto()) @map("_id") @db.ObjectId
-  orderId           String           @unique @default(uuid())
+  customeOrderId    String           @unique @default(uuid())
   status            OrderStatus      @default(PENDING)
   totalPrice        Int              @default(0)
   orderDate         DateTime         @default(now())
@@ -150,25 +150,29 @@ model Order {
   updatedAt         DateTime         @updatedAt
   customerId        String           @db.ObjectId
   customer          User             @relation(fields: [customerId], references: [id])
+  vehicleId         String?          @db.ObjectId
+  vehicle           Vehicle?         @relation(fields: [vehicleId], references: [id])
   deliveryAddressId String?          @db.ObjectId
   deliveryAddress   DeliveryAddress? @relation(fields: [deliveryAddressId], references: [id])
   OrderItem         OrderItem[]
+  originalOrderId   String?            @db.ObjectId
 }
 
 model OriginalOrder {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  orginalOrderId    String              @db.ObjectId
+  originalOrderId    String              @db.ObjectId
   orderDate         DateTime
-  createdAt         DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   OriginalOrderItem OriginalOrderItem[]
 }
 
 model OriginalOrderItem {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  orginalOrderId String        @db.ObjectId
+  originalOrderId String        @db.ObjectId
   productId      String        @db.ObjectId
   quantity       Int
-  OriginalOrder  OriginalOrder @relation(fields: [orginalOrderId], references: [id])
+  OriginalOrder  OriginalOrder @relation(fields: [originalOrderId], references: [id])
 }
 
 enum OrderStatus {
@@ -188,7 +192,7 @@ model OrderItem {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deliveryDate   DateTime
-  orderCompleted Boolean  @default(false) 
+  orderCompleted Boolean  @default(false)
   Order          Order    @relation(fields: [orderId], references: [id])
   Product        Product  @relation(fields: [productId], references: [id])
 }
@@ -212,6 +216,7 @@ model Vehicle {
   capacity      Int
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  Order         Order[]
 }
 
 enum VehicleType {

@@ -6,6 +6,7 @@ import {
 
   deleteOrder,
   getOrderStats,
+  updateOrder,
 } from "../controller/order.controller";
 import {
   validateCreateOrder,
@@ -29,10 +30,14 @@ router.get("/", validateOrderQuery, getOrders);
 router.get("/stats", getOrderStats);
 
 // Get a single order by ID
-router.get("/:id", getOrderById);
+router.get("/:orderId", getOrderById);
+
+// Update an order
+router.put("/:orderId", validateUpdateOrder, updateOrder);
+
 
 
 // Delete an order
-router.delete("/:id", deleteOrder);
+router.delete("/:orderId", deleteOrder);
 
 export default router;
