@@ -44,12 +44,11 @@ export const createSubCategory = async (req: Request, res: Response) => {
       }
     });
 
-    res.status(201).json({ subCategory: subCategoryWithCategory });
-
-    res.status(201).json({ subCategory });
+    return res.status(201).json({ subCategory: subCategoryWithCategory });
+    
   } catch (error) {
     console.error("Error creating sub-category:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -62,10 +61,10 @@ export const getSubCategories = async (req: Request, res: Response) => {
       }
     });
 
-    res.json({ subCategories });
+    return res.json({ subCategories });
   } catch (error) {
     console.error("Error fetching sub-categories:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -85,10 +84,10 @@ export const getSubCategoryById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Sub-category not found" });
     }
 
-    res.json({ subCategory });
+    return res.json({ subCategory });
   } catch (error) {
     console.error("Error fetching sub-category:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -145,10 +144,10 @@ export const updateSubCategory = async (req: Request, res: Response) => {
       }
     });
 
-    res.json({ subCategory });
+    return res.json({ subCategory });
   } catch (error) {
     console.error("Error updating sub-category:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -173,10 +172,10 @@ export const getSubCategoriesByCategory = async (req: Request, res: Response) =>
       }
     });
 
-    res.json({ subCategories });
+    return res.json({ subCategories });
   } catch (error) {
     console.error("Error fetching sub-categories by category:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -208,9 +207,9 @@ export const deleteSubCategory = async (req: Request, res: Response) => {
       where: { id },
     });
 
-    res.json({ message: "Sub-category deleted successfully" });
+    return res.json({ message: "Sub-category deleted successfully" });
   } catch (error) {
     console.error("Error deleting sub-category:\n", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

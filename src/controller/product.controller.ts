@@ -27,12 +27,17 @@ export const createProduct = async (req: Request, res: Response) => {
       expiryAlertColor,
       expiryAlertMessage,
       tags,
-      imageUrl,
       categoryId,
       groupId,
       subCategoryId,
       grammage,
     } = req.body;
+
+    // Get user ID from request (assuming it's set by auth middleware)
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
 
     // Check if product code already exists
     const existingProduct = await prisma.product.findUnique({
@@ -60,42 +65,59 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Sub-category not found" });
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        mrp,
-        productCode,
-        description,
-        expiryDate: new Date(expiryDate),
-        validity,
-        stock,
-        stockEntryDate: new Date(stockEntryDate),
-        lowStockLimit: lowStockLimit || 0,
-        overStockLimit: overStockLimit || 0,
-        lowStockAlertColor: lowStockAlertColor || "#008000",
-        lowStockAlertMessage: lowStockAlertMessage || "Low Stock",
-        overStockAlertColor: overStockAlertColor || "#FF0000",
-        overStockAlertMessage: overStockAlertMessage || "Over Stock",
-        inStockAlertColor: inStockAlertColor || "#00008B",
-        inStockAlertMessage: inStockAlertMessage || "In Stock",
-        expiryAlertDays: expiryAlertDays || 0,
-        expiryAlertColor: expiryAlertColor || "#FF0000",
-        expiryAlertMessage: expiryAlertMessage || "Expired",
-        tags: tags || [],
-        imageUrl,
-        categoryId,
-        groupId,
-        subCategoryId,
-        grammage,
-      },
-      include: {
-        Category: true,
-        Group: true,
-        SubCategory: true,
-      },
+    // Create product and stock entry in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: {
+          name,
+          mrp,
+          productCode,
+          description,
+          expiryDate: new Date(expiryDate),
+          validity,
+          stock,
+          stockEntryDate: new Date(stockEntryDate),
+          lowStockLimit: lowStockLimit || 20, // TODO: get from stock setting
+          overStockLimit: overStockLimit || 100, // TODO: get from stock setting
+          lowStockAlertColor: lowStockAlertColor || "#008000", // TODO: get from stock setting
+          lowStockAlertMessage: lowStockAlertMessage || "Low Stock", // TODO: get from stock setting
+          overStockAlertColor: overStockAlertColor || "#FF0000", // TODO: get from stock setting
+          overStockAlertMessage: overStockAlertMessage || "Over Stock", // TODO: get from stock setting
+          inStockAlertColor: inStockAlertColor || "#00008B", // TODO: get from stock setting
+          inStockAlertMessage: inStockAlertMessage || "In Stock", // TODO: get from stock setting
+          expiryAlertDays: expiryAlertDays || 5, // TODO: get from stock setting
+          expiryAlertColor: expiryAlertColor || "#FF0000", // TODO: get from stock setting
+          expiryAlertMessage: expiryAlertMessage || "Expired", // TODO: get from stock setting
+          tags: tags || [],
+          imageUrl: "http://example.com/image.jpg",
+          categoryId,
+          groupId,
+          subCategoryId,
+          grammage,
+        },
+        include: {
+          Category: true,
+          Group: true,
+          SubCategory: true,
+        },
+      });
+
+      // Create stock entry record
+      const stockEntry = await tx.stockEntry.create({
+        data: {
+          productId: product.id,
+          changeInStock: stock,
+          updatedBy: userId,
+        },
+      });
+
+      return { product, stockEntry };
     });
 
-    res.status(201).json({ product });
+    res.status(201).json({
+      product: result.product,
+      stockEntry: result.stockEntry,
+    });
   } catch (error) {
     console.error("Error creating product:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -222,7 +244,10 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 
     // If product code is being updated, check for uniqueness
-    if (updateData.productCode && updateData.productCode !== existingProduct.productCode) {
+    if (
+      updateData.productCode &&
+      updateData.productCode !== existingProduct.productCode
+    ) {
       const duplicateProduct = await prisma.product.findUnique({
         where: { productCode: updateData.productCode },
       });
@@ -306,7 +331,8 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
     if (orderItems.length > 0) {
       return res.status(400).json({
-        message: "Cannot delete product as it is associated with existing orders",
+        message:
+          "Cannot delete product as it is associated with existing orders",
       });
     }
 
@@ -336,7 +362,8 @@ export const getProductStats = async (req: Request, res: Response) => {
       }),
     ]);
 
-    const averagePrice = totalProducts > 0 ? totalValue._sum.mrp! / totalProducts : 0;
+    const averagePrice =
+      totalProducts > 0 ? totalValue._sum.mrp! / totalProducts : 0;
 
     res.json({
       stats: {
