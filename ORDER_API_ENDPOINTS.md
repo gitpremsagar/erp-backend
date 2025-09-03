@@ -9,12 +9,13 @@
 ```json
 {
   "customerId": "string (24 chars - MongoDB ObjectId)",
-  "totalPrice": "number (positive integer)",
+  "totalPrice": "number (positive integer, optional)",
+  "vehicleId": "string (24 chars - MongoDB ObjectId, optional)",
+  "deliveryAddressId": "string (24 chars - MongoDB ObjectId, optional)",
   "orderItems": [
     {
       "productId": "string (24 chars - MongoDB ObjectId)",
-      "quantity": "number (positive integer)",
-      "grammage": "number (positive integer)"
+      "quantity": "number (positive integer)"
     }
   ]
 }
@@ -22,9 +23,10 @@
 - **Response**: 201 Created with order details
 - **Features**: 
   - Validates customer existence
+  - Validates vehicle and delivery address if provided
   - Checks product stock availability
   - Automatically decrements product stock
-  - Creates order items in transaction
+  - Creates order items in transaction with customerId
 
 ### 2. Get All Orders
 - **GET** `/api/orders`
@@ -39,7 +41,7 @@
 - **Features**: 
   - Pagination support
   - Multiple filtering options
-  - Includes customer and product details
+  - Includes customer, vehicle, delivery address, and product details
 
 ### 3. Get Order Statistics
 - **GET** `/api/orders/stats`
@@ -49,26 +51,30 @@
 ### 4. Get Order by ID
 - **GET** `/api/orders/:id`
 - **Description**: Get a specific order by ID
-- **Response**: Order details with customer and order items
+- **Response**: Order details with customer, vehicle, delivery address, and order items
 
 ### 5. Update Order
 - **PUT** `/api/orders/:id`
-- **Description**: Update order status, total price, or order items
+- **Description**: Update order status, total price, customer, vehicle, delivery address, or original order ID
 - **Body**:
 ```json
 {
   "status": "PENDING|MODIFYING|PACKING|SHIPPING|DELIVERED|COMPLETED",
-  "totalPrice": "number (positive integer)",
+  "totalPrice": "number (positive integer, optional)",
+  "customerId": "string (24 chars - MongoDB ObjectId, optional)",
+  "vehicleId": "string (24 chars - MongoDB ObjectId, optional)",
+  "deliveryAddressId": "string (24 chars - MongoDB ObjectId, optional)",
+  "originalOrderId": "string (24 chars - MongoDB ObjectId, optional)",
   "orderItems": [
     {
       "productId": "string (24 chars - MongoDB ObjectId)",
-      "quantity": "number (positive integer)",
-      "grammage": "number (positive integer)"
+      "quantity": "number (positive integer)"
     }
   ]
 }
 ```
 - **Features**: 
+  - Validates all referenced entities exist
   - Handles stock adjustments when updating items
   - Restores old stock and decrements new stock
 
@@ -78,6 +84,46 @@
 - **Features**: 
   - Automatically restores product stock
   - Deletes order items in transaction
+
+## OrderItem Endpoints
+
+### 1. Create Order Item
+- **POST** `/api/order-items`
+- **Description**: Create a new order item
+- **Body**:
+```json
+{
+  "orderId": "string (24 chars - MongoDB ObjectId)",
+  "productId": "string (24 chars - MongoDB ObjectId)",
+  "quantity": "number (positive integer)",
+  "customerId": "string (24 chars - MongoDB ObjectId)",
+  "deliveryDate": "date (optional)",
+  "orderCompleted": "boolean (optional, default: false)"
+}
+```
+
+### 2. Get All Order Items
+- **GET** `/api/order-items`
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Items per page (default: 10)
+  - `orderId` (optional): Filter by order ID
+  - `productId` (optional): Filter by product ID
+  - `customerId` (optional): Filter by customer ID
+  - `orderCompleted` (optional): Filter by completion status
+
+### 3. Update Order Item
+- **PUT** `/api/order-items/:id`
+- **Description**: Update an order item
+- **Body**: Any combination of order item fields (all optional)
+
+### 4. Delete Order Item
+- **DELETE** `/api/order-items/:id`
+- **Description**: Delete an order item and restore product stock
+
+### 5. Get Order Item Statistics
+- **GET** `/api/order-items/stats`
+- **Description**: Get order item statistics
 
 ## Customer Endpoints
 
@@ -151,41 +197,56 @@
 ### Order Model
 ```typescript
 {
-  id: string;           // MongoDB ObjectId
-  orderId: string;      // Unique order identifier (UUID)
-  status: OrderStatus;  // Current order status
-  totalPrice: number;   // Total order amount
-  orderDate: Date;      // Order creation date
-  customerId: string;   // Reference to customer
-  customer: Customer;   // Customer details
-  OrderItem: OrderItem[]; // Order items
+  id: string;                    // MongoDB ObjectId
+  customeOrderId: string;        // Unique order identifier (UUID)
+  status: OrderStatus;           // Current order status
+  totalPrice: number;            // Total order amount
+  orderDate: Date;               // Order creation date
+  createdAt: Date;               // Creation timestamp
+  updatedAt: Date;               // Last update timestamp
+  customerId: string;            // Reference to customer
+  vehicleId: string;             // Reference to vehicle (optional)
+  deliveryAddressId: string;     // Reference to delivery address (optional)
+  originalOrderId: string;       // Reference to original order (optional)
+  customer: User;                // Customer details
+  vehicle: Vehicle;              // Vehicle details (optional)
+  deliveryAddress: DeliveryAddress; // Delivery address details (optional)
+  OrderItem: OrderItem[];        // Order items
 }
 ```
 
 ### OrderItem Model
 ```typescript
 {
-  id: string;        // MongoDB ObjectId
-  productId: string; // Reference to product
-  quantity: number;  // Quantity ordered
-  grammage: number;  // Product grammage
-  orderId: string;   // Reference to order
-  Product: Product;  // Product details
+  id: string;           // MongoDB ObjectId
+  orderId: string;      // Reference to order
+  productId: string;    // Reference to product
+  quantity: number;     // Quantity ordered
+  createdAt: Date;      // Creation timestamp
+  updatedAt: Date;      // Last update timestamp
+  deliveryDate: Date;   // Delivery date (optional)
+  orderCompleted: boolean; // Completion status
+  customerId: string;   // Reference to customer
+  Order: Order;         // Order details
+  Product: Product;     // Product details
+  Customer: User;       // Customer details
 }
 ```
 
-### Customer Model
+### Customer Model (User with CUSTOMER privilege)
 ```typescript
 {
-  id: string;        // MongoDB ObjectId
-  name: string;      // Customer name
+  id: string;           // MongoDB ObjectId
+  name: string;         // Customer name
+  email: string;        // Email address
+  phone: string;        // Phone number
+  address: string;      // Address
   aadharNumber: number; // Aadhar card number
-  email: string;     // Email address
-  phone: string;     // Phone number
-  address: string;   // Address
-  pan: string;       // PAN number
-  gstNumber: string; // GST number
-  Order: Order[];    // Customer orders
+  pan: string;          // PAN number
+  gstNumber: string;    // GST number
+  privilegeId: string;  // Reference to user privilege
+  Order: Order[];       // Customer orders
+  OrderItem: OrderItem[]; // Customer order items
 }
 ```
 

@@ -11,11 +11,18 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma = new client_1.PrismaClient();
 const signup = async (req, res) => {
-    const { email, password, name, type } = req.body;
+    const { email, password, name, phone, privilegeId } = req.body;
     //check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
         return res.status(409).json({ message: "User already exists" });
+    }
+    // Check if privilege exists
+    const privilege = await prisma.userPrivilege.findUnique({
+        where: { id: privilegeId },
+    });
+    if (!privilege) {
+        return res.status(404).json({ message: "Invalid privilege ID" });
     }
     // Hash the password
     const hashedPassword = await bcrypt_1.default.hash(password, +process.env.BCRYPT_SALT_ROUNDS);
@@ -26,7 +33,11 @@ const signup = async (req, res) => {
                 email,
                 password: hashedPassword,
                 name,
-                type,
+                phone,
+                privilegeId,
+            },
+            include: {
+                privilege: true,
             },
         });
         // Send response
@@ -43,7 +54,12 @@ exports.signup = signup;
 const signin = async (req, res) => {
     const { email, password } = req.body;
     // Implement login logic here
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+            privilege: true,
+        },
+    });
     if (!user) {
         return res.status(404).json({ message: "Invalid email or password" });
     }
@@ -55,7 +71,7 @@ const signin = async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        type: user.type,
+        privilege: user.privilege,
     };
     // Generate JWT tokens
     const accessToken = jsonwebtoken_1.default.sign({ ...userData }, process.env.ACCESS_TOKEN_JWT_SECRET, { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY });
@@ -108,6 +124,9 @@ const refreshAccessToken = async (req, res) => {
         const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_JWT_SECRET);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
+            include: {
+                privilege: true,
+            },
         });
         if (!user) {
             return res.status(401).json({ message: "Invalid refresh token" });
@@ -116,7 +135,7 @@ const refreshAccessToken = async (req, res) => {
             id: user.id,
             email: user.email,
             name: user.name,
-            type: user.type,
+            privilege: user.privilege,
         };
         // Generate new access token
         const accessToken = jsonwebtoken_1.default.sign({ ...userData }, process.env.ACCESS_TOKEN_JWT_SECRET, { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY } // Remove '+' if using "1h" etc.

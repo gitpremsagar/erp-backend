@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerId, orderItems } = req.body;
+    const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice } = req.body;
 
     // Check if customer exists
     const customer = await prisma.user.findUnique({
@@ -15,6 +15,26 @@ export const createOrder = async (req: Request, res: Response) => {
 
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
+    }
+
+    // Check if vehicle exists if provided
+    if (vehicleId) {
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: vehicleId },
+      });
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+    }
+
+    // Check if delivery address exists if provided
+    if (deliveryAddressId) {
+      const deliveryAddress = await prisma.deliveryAddress.findUnique({
+        where: { id: deliveryAddressId },
+      });
+      if (!deliveryAddress) {
+        return res.status(404).json({ message: "Delivery address not found" });
+      }
     }
 
     // Check if all products exist
@@ -43,9 +63,14 @@ export const createOrder = async (req: Request, res: Response) => {
       const newOrder = await tx.order.create({
         data: {
           customerId,
+          vehicleId,
+          deliveryAddressId,
+          totalPrice: totalPrice || 0,
         },
         include: {
           customer: true,
+          vehicle: true,
+          deliveryAddress: true,
         },
       });
 
@@ -56,6 +81,7 @@ export const createOrder = async (req: Request, res: Response) => {
             orderId: newOrder.id,
             productId: item.productId,
             quantity: item.quantity,
+            customerId, // Add customerId to OrderItem
             deliveryDate: new Date(),
           },
         });
@@ -79,9 +105,12 @@ export const createOrder = async (req: Request, res: Response) => {
       where: { id: order.id },
       include: {
         customer: true,
+        vehicle: true,
+        deliveryAddress: true,
         OrderItem: {
           include: {
             Product: true,
+            Customer: true,
           },
         },
       },
@@ -136,9 +165,12 @@ export const getOrders = async (req: Request, res: Response) => {
         take: Number(limit),
         include: {
           customer: true,
+          vehicle: true,
+          deliveryAddress: true,
           OrderItem: {
             include: {
               Product: true,
+              Customer: true,
             },
           },
         },
@@ -202,9 +234,12 @@ export const getOrderById = async (req: Request, res: Response) => {
       where: { id: orderId },
       include: {
         customer: true,
+        vehicle: true,
+        deliveryAddress: true,
         OrderItem: {
           include: {
             Product: true,
+            Customer: true,
           },
         },
       },
@@ -223,15 +258,74 @@ export const getOrderById = async (req: Request, res: Response) => {
 
 // Update an order
 export const updateOrder = async (req: Request, res: Response) => {
-  const { orderId } = req.params;
-  const { status, customerId, vehicleId  } = req.body;
-  //logic to update order
-
   try {
-    const order = await prisma.order.update({
+    const { orderId } = req.params;
+    const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId } = req.body;
+
+    // Check if order exists
+    const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      data: { status, customerId, vehicleId },
     });
+
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if customer exists if updating customerId
+    if (customerId) {
+      const customer = await prisma.user.findUnique({
+        where: { id: customerId },
+      });
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+    }
+
+    // Check if vehicle exists if updating vehicleId
+    if (vehicleId) {
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: vehicleId },
+      });
+      if (!vehicle) {
+        return res.status(404).json({ message: "Vehicle not found" });
+      }
+    }
+
+    // Check if delivery address exists if updating deliveryAddressId
+    if (deliveryAddressId) {
+      const deliveryAddress = await prisma.deliveryAddress.findUnique({
+        where: { id: deliveryAddressId },
+      });
+      if (!deliveryAddress) {
+        return res.status(404).json({ message: "Delivery address not found" });
+      }
+    }
+
+    // Update the order
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status,
+        customerId,
+        vehicleId,
+        deliveryAddressId,
+        totalPrice,
+        originalOrderId,
+      },
+      include: {
+        customer: true,
+        vehicle: true,
+        deliveryAddress: true,
+        OrderItem: {
+          include: {
+            Product: true,
+            Customer: true,
+          },
+        },
+      },
+    });
+
+    res.json({ order: updatedOrder });
   } catch (error) {
     console.error("Error updating order:\n", error);
     res.status(500).json({ message: "Internal server error" });

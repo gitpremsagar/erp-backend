@@ -13,6 +13,7 @@ import vehicleRouteHandler from "./route/vehicle.route";
 import orderRouteHandler from "./route/order.route";
 import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
+import deliveryAddressRouteHandler from "./route/deliveryAddress.route";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/vehicles", vehicleRouteHandler);
 app.use("/api/orders", orderRouteHandler);
 app.use("/api/order-items", orderItemRouteHandler);
 app.use("/api/customers", customerRouteHandler);
+app.use("/api/delivery-addresses", deliveryAddressRouteHandler);
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {

@@ -6,10 +6,6 @@ export const CreateCustomerSchema = z.object({
     .min(1, "Customer name is required")
     .max(100, "Customer name must be at most 100 characters long")
     .trim(),
-  aadharNumber: z
-    .number()
-    .int("Aadhar number must be an integer")
-    .positive("Aadhar number must be positive"),
   email: z
     .string()
     .email("Invalid email format")
@@ -19,21 +15,33 @@ export const CreateCustomerSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number must be at most 15 digits")
     .trim(),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .optional(),
   address: z
     .string()
     .min(1, "Address is required")
     .max(500, "Address must be at most 500 characters long")
-    .trim(),
+    .trim()
+    .optional(),
+  aadharNumber: z
+    .number()
+    .int("Aadhar number must be an integer")
+    .positive("Aadhar number must be positive")
+    .optional(),
   pan: z
     .string()
     .min(10, "PAN must be 10 characters long")
     .max(10, "PAN must be 10 characters long")
-    .trim(),
+    .trim()
+    .optional(),
   gstNumber: z
     .string()
     .min(15, "GST number must be 15 characters long")
     .max(15, "GST number must be 15 characters long")
-    .trim(),
+    .trim()
+    .optional(),
 });
 
 export const UpdateCustomerSchema = z.object({
@@ -43,11 +51,6 @@ export const UpdateCustomerSchema = z.object({
     .max(100, "Customer name must be at most 100 characters long")
     .trim()
     .optional(),
-  aadharNumber: z
-    .number()
-    .int("Aadhar number must be an integer")
-    .positive("Aadhar number must be positive")
-    .optional(),
   email: z
     .string()
     .email("Invalid email format")
@@ -64,6 +67,11 @@ export const UpdateCustomerSchema = z.object({
     .min(1, "Address is required")
     .max(500, "Address must be at most 500 characters long")
     .trim()
+    .optional(),
+  aadharNumber: z
+    .number()
+    .int("Aadhar number must be an integer")
+    .positive("Aadhar number must be positive")
     .optional(),
   pan: z
     .string()

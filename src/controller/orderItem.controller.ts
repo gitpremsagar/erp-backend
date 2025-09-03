@@ -10,6 +10,7 @@ export const createOrderItem = async (req: Request, res: Response) => {
       orderId,
       productId,
       quantity,
+      customerId,
       orderCompleted = false,
     } = req.body;
 
@@ -20,6 +21,17 @@ export const createOrderItem = async (req: Request, res: Response) => {
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if customer exists
+    if (customerId) {
+      const customer = await prisma.user.findUnique({
+        where: { id: customerId },
+      });
+
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
     }
 
     // Check if product exists
@@ -44,6 +56,7 @@ export const createOrderItem = async (req: Request, res: Response) => {
         orderId,
         productId,
         quantity,
+        customerId,
         orderCompleted,
       },
       include: {
@@ -55,6 +68,7 @@ export const createOrderItem = async (req: Request, res: Response) => {
             SubCategory: true,
           },
         },
+        Customer: true,
       },
     });
 
@@ -126,6 +140,7 @@ export const getOrderItems = async (req: Request, res: Response) => {
               SubCategory: true,
             },
           },
+          Customer: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -167,6 +182,7 @@ export const getProducOrderHistory = async (req: Request, res: Response) => {
             SubCategory: true,
           },
         },
+        Customer: true,
       },
     });
 
@@ -266,6 +282,7 @@ export const updateOrderItem = async (req: Request, res: Response) => {
             SubCategory: true,
           },
         },
+        Customer: true,
       },
     });
 

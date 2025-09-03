@@ -13,7 +13,11 @@ export const CreateOrderItemSchema = z.object({
     .number()
     .int("Quantity must be an integer")
     .positive("Quantity must be a positive number"),
-  deliveryDate: z.date("Invalid delivery date format"),
+  customerId: z
+    .string()
+    .min(24, "Invalid customer ID")
+    .max(24, "Invalid customer ID"),
+  deliveryDate: z.date("Invalid delivery date format").optional(),
   orderCompleted: z.boolean().optional().default(false),
 });
 
@@ -24,5 +28,6 @@ export const OrderItemQuerySchema = z.object({
   limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
   orderId: z.string().optional(),
   productId: z.string().optional(),
+  customerId: z.string().optional(),
   orderCompleted: z.string().optional().transform(val => val === 'true'),
 });

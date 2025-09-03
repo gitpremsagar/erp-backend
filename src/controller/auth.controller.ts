@@ -10,12 +10,20 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware";
 const prisma = new PrismaClient();
 
 export const signup = async (req: Request, res: Response) => {
-  const { email, password, name, type } = req.body;
+  const { email, password, name, phone, privilegeId } = req.body;
 
   //check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     return res.status(409).json({ message: "User already exists" });
+  }
+
+  // Check if privilege exists
+  const privilege = await prisma.userPrivilege.findUnique({
+    where: { id: privilegeId },
+  });
+  if (!privilege) {
+    return res.status(404).json({ message: "Invalid privilege ID" });
   }
 
   // Hash the password
@@ -31,7 +39,11 @@ export const signup = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         name,
-        type,
+        phone,
+        privilegeId,
+      },
+      include: {
+        privilege: true,
       },
     });
 
@@ -48,7 +60,12 @@ export const signup = async (req: Request, res: Response) => {
 export const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   // Implement login logic here
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ 
+    where: { email },
+    include: {
+      privilege: true,
+    },
+  });
   if (!user) {
     return res.status(404).json({ message: "Invalid email or password" });
   }
@@ -62,7 +79,7 @@ export const signin = async (req: Request, res: Response) => {
     id: user.id,
     email: user.email,
     name: user.name,
-    type: user.type,
+    privilege: user.privilege,
   };
 
   // Generate JWT tokens
@@ -130,6 +147,9 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
+      include: {
+        privilege: true,
+      },
     });
     if (!user) {
       return res.status(401).json({ message: "Invalid refresh token" });
@@ -139,7 +159,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      type: user.type,
+      privilege: user.privilege,
     };
 
     // Generate new access token
