@@ -1,6 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { defaultPrivileges } from "./defaultPrivileges";
+import { defaultCategories } from "./defaultCategories";
+import { defaultGroups } from "./defaultGroups";
+import { defaultSubCategories } from "./defaultSubCategories";
 
 const prisma = new PrismaClient();
 
@@ -22,6 +25,72 @@ export const seedDatabase = async () => {
         console.log(`✅ Created privilege: ${privilege.name}`);
       } else {
         console.log(`⏭️  Privilege already exists: ${privilege.name}`);
+      }
+    }
+
+    // Seed categories
+    console.log("📂 Seeding categories...");
+    const categoryMap = new Map<string, string>(); // name -> id mapping
+    
+    for (const category of defaultCategories) {
+      const existingCategory = await prisma.category.findUnique({
+        where: { name: category.name },
+      });
+
+      if (!existingCategory) {
+        const createdCategory = await prisma.category.create({
+          data: category,
+        });
+        categoryMap.set(category.name, createdCategory.id);
+        console.log(`✅ Created category: ${category.name}`);
+      } else {
+        categoryMap.set(category.name, existingCategory.id);
+        console.log(`⏭️  Category already exists: ${category.name}`);
+      }
+    }
+
+    // Seed groups
+    console.log("🏷️  Seeding groups...");
+    for (const group of defaultGroups) {
+      const existingGroup = await prisma.group.findUnique({
+        where: { name: group.name },
+      });
+
+      if (!existingGroup) {
+        await prisma.group.create({
+          data: group,
+        });
+        console.log(`✅ Created group: ${group.name}`);
+      } else {
+        console.log(`⏭️  Group already exists: ${group.name}`);
+      }
+    }
+
+    // Seed subcategories
+    console.log("📁 Seeding subcategories...");
+    for (const subCategory of defaultSubCategories) {
+      const categoryId = categoryMap.get(subCategory.categoryName);
+      
+      if (!categoryId) {
+        console.log(`❌ Category not found for subcategory: ${subCategory.name}`);
+        continue;
+      }
+
+      const existingSubCategory = await prisma.subCategory.findUnique({
+        where: { name: subCategory.name },
+      });
+
+      if (!existingSubCategory) {
+        await prisma.subCategory.create({
+          data: {
+            name: subCategory.name,
+            description: subCategory.description,
+            categoryId: categoryId,
+          },
+        });
+        console.log(`✅ Created subcategory: ${subCategory.name} (${subCategory.categoryName})`);
+      } else {
+        console.log(`⏭️  Subcategory already exists: ${subCategory.name}`);
       }
     }
 

@@ -41,20 +41,6 @@ model User {
   OrderItem       OrderItem[]
 }
 
-// model Customer {
-//   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-//   name         String
-//   aadharNumber Int
-//   email        String
-//   phone        String
-//   address      String
-//   pan          String
-//   gstNumber    String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-//   Order        Order[]
-// }
-
 model UserPrivilege {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
