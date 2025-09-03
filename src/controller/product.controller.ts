@@ -138,7 +138,11 @@ export const getProducts = async (req: Request, res: Response) => {
       maxPrice,
     } = req.query as any;
 
-    const skip = (page - 1) * limit;
+    // Convert string values to numbers
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    
+    const skip = (pageNum - 1) * limitNum;
 
     // Build where clause
     const where: any = {};
@@ -173,7 +177,7 @@ export const getProducts = async (req: Request, res: Response) => {
       prisma.product.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,  // Now it's a number
         include: {
           Category: true,
           Group: true,
@@ -184,17 +188,17 @@ export const getProducts = async (req: Request, res: Response) => {
       prisma.product.count({ where }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limitNum);
 
     res.json({
       products,
       pagination: {
-        page,
-        limit,
+        page: pageNum,  // Use the converted number
+        limit: limitNum,  // Use the converted number
         total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1,
       },
     });
   } catch (error) {
