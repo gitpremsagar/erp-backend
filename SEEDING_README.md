@@ -43,7 +43,19 @@ Each category has relevant subcategories. For example:
 - **Dry Fruits & Nuts**: Premium Nuts, Dried Fruits, Mixed Dry Fruits, Seeds
 - **Grocery & Staples**: Rice & Pulses, Flour & Atta, Cooking Oils, Sugar & Jaggery
 
-### 5. Default Users
+### 5. Products
+A comprehensive collection of Haldiram-style products including:
+- **Snacks**: Moong Dal Namkeen, Aloo Bhujia, Premium variants
+- **Sweets**: Besan Ladoo, Motichoor Ladoo, Kaju Barfi
+- **Ready to Eat**: Paneer Butter Masala, various curries
+- **Beverages**: Mango Juice, traditional drinks
+- **Spices**: Garam Masala, spice blends
+- **Pickles**: Sweet Mango Pickle, traditional pickles
+- **Dry Fruits**: Premium Almonds, organic mixed nuts
+- **Grocery**: Basmati Rice, essential staples
+- **Special Products**: Diwali Special Mix, Sugar-Free Ladoo, Kids Snack Pack
+
+### 6. Default Users
 - **Admin User**: admin@edigitalindia.com / admin123
 - **Sample Customer**: customer@example.com / customer123
 
@@ -73,14 +85,28 @@ The seeding process follows this order:
 2. **Categories** - Creates main food product categories
 3. **Groups** - Creates product quality and target market groups
 4. **Subcategories** - Creates subcategories linked to their parent categories
-5. **Default Users** - Creates admin and sample customer accounts
+5. **Products** - Creates sample products with proper category, group, and subcategory relationships
+6. **Default Users** - Creates admin and sample customer accounts
+
+## Product Features
+
+The seeded products include:
+- **Realistic Pricing**: MRP ranges from ₹25 to ₹220 based on product type and quality
+- **Proper Expiry Dates**: Different validity periods based on product type (3 months to 2 years)
+- **Stock Management**: Initial stock levels with low and over stock limits
+- **Product Codes**: Systematic HD-XXX-XXX format for easy identification
+- **Rich Descriptions**: Detailed product descriptions with authentic Haldiram-style language
+- **Tags**: Relevant tags for search and categorization
+- **Image URLs**: Placeholder image URLs for product images
+- **Grammage**: Realistic package sizes from 100g to 1000g
 
 ## Safety Features
 
 - **Idempotent**: Running the seed multiple times won't create duplicates
 - **Error Handling**: Graceful error handling with detailed logging
-- **Dependency Management**: Subcategories are only created after their parent categories exist
+- **Dependency Management**: Products are only created after categories, groups, and subcategories exist
 - **Existing Data Check**: Skips creation if data already exists
+- **Reference Validation**: Ensures all product references (category, group, subcategory) exist before creation
 
 ## Customization
 
@@ -89,7 +115,8 @@ To modify the default data:
 1. **Categories**: Edit `src/libs/dummyData/defaultCategories.ts`
 2. **Groups**: Edit `src/libs/dummyData/defaultGroups.ts`
 3. **Subcategories**: Edit `src/libs/dummyData/defaultSubCategories.ts`
-4. **Privileges**: Edit `src/libs/dummyData/defaultPrivileges.ts`
+4. **Products**: Edit `src/libs/dummyData/defaultProducts.ts`
+5. **Privileges**: Edit `src/libs/dummyData/defaultPrivileges.ts`
 
 ## Logging
 
@@ -98,6 +125,7 @@ The seeding process provides detailed console output:
 - ⏭️ Skip messages for existing items
 - ❌ Error messages for failed operations
 - 📋 Section headers for each seeding phase
+- 🛍️ Product creation progress with detailed validation
 
 ## Troubleshooting
 
@@ -107,6 +135,7 @@ The seeding process provides detailed console output:
 2. **Prisma Client**: Run `npx prisma generate` if you get Prisma client errors
 3. **Permissions**: Ensure your database user has CREATE permissions
 4. **Schema Mismatch**: Ensure your Prisma schema matches the seeding data structure
+5. **Reference Errors**: Check that categories, groups, and subcategories exist before seeding products
 
 ### Reset Database
 
@@ -124,7 +153,8 @@ src/libs/dummyData/
 ├── defaultPrivileges.ts     # User privilege definitions
 ├── defaultCategories.ts     # Food category definitions
 ├── defaultGroups.ts         # Product group definitions
-└── defaultSubCategories.ts  # Food subcategory definitions
+├── defaultSubCategories.ts  # Food subcategory definitions
+└── defaultProducts.ts       # Sample product definitions
 ```
 
 ## Notes
@@ -134,3 +164,5 @@ src/libs/dummyData/
 - MongoDB ObjectIds are automatically generated
 - The process maintains referential integrity between related entities
 - Categories and subcategories are specifically designed for Haldiram-style food products
+- Products include realistic pricing, expiry dates, and stock levels
+- All products are properly linked to their respective categories, groups, and subcategories

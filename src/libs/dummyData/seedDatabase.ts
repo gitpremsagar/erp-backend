@@ -4,6 +4,7 @@ import { defaultPrivileges } from "./defaultPrivileges";
 import { defaultCategories } from "./defaultCategories";
 import { defaultGroups } from "./defaultGroups";
 import { defaultSubCategories } from "./defaultSubCategories";
+import { defaultProducts } from "./defaultProducts";
 
 const prisma = new PrismaClient();
 
@@ -51,23 +52,29 @@ export const seedDatabase = async () => {
 
     // Seed groups
     console.log("🏷️  Seeding groups...");
+    const groupMap = new Map<string, string>(); // name -> id mapping
+    
     for (const group of defaultGroups) {
       const existingGroup = await prisma.group.findUnique({
         where: { name: group.name },
       });
 
       if (!existingGroup) {
-        await prisma.group.create({
+        const createdGroup = await prisma.group.create({
           data: group,
         });
+        groupMap.set(group.name, createdGroup.id);
         console.log(`✅ Created group: ${group.name}`);
       } else {
+        groupMap.set(group.name, existingGroup.id);
         console.log(`⏭️  Group already exists: ${group.name}`);
       }
     }
 
     // Seed subcategories
     console.log("📁 Seeding subcategories...");
+    const subCategoryMap = new Map<string, string>(); // name -> id mapping
+    
     for (const subCategory of defaultSubCategories) {
       const categoryId = categoryMap.get(subCategory.categoryName);
       
@@ -81,16 +88,64 @@ export const seedDatabase = async () => {
       });
 
       if (!existingSubCategory) {
-        await prisma.subCategory.create({
+        const createdSubCategory = await prisma.subCategory.create({
           data: {
             name: subCategory.name,
             description: subCategory.description,
             categoryId: categoryId,
           },
         });
+        subCategoryMap.set(subCategory.name, createdSubCategory.id);
         console.log(`✅ Created subcategory: ${subCategory.name} (${subCategory.categoryName})`);
       } else {
+        subCategoryMap.set(subCategory.name, existingSubCategory.id);
         console.log(`⏭️  Subcategory already exists: ${subCategory.name}`);
+      }
+    }
+
+    // Seed products
+    console.log("🛍️  Seeding products...");
+    for (const product of defaultProducts) {
+      const categoryId = categoryMap.get(product.categoryName);
+      const groupId = groupMap.get(product.groupName);
+      const subCategoryId = subCategoryMap.get(product.subCategoryName);
+      
+      if (!categoryId || !groupId || !subCategoryId) {
+        console.log(`❌ Required references not found for product: ${product.name}`);
+        console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
+        console.log(`   Group: ${product.groupName} (${groupId ? '✓' : '✗'})`);
+        console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
+        continue;
+      }
+
+      const existingProduct = await prisma.product.findUnique({
+        where: { productCode: product.productCode },
+      });
+
+      if (!existingProduct) {
+        await prisma.product.create({
+          data: {
+            name: product.name,
+            mrp: product.mrp,
+            productCode: product.productCode,
+            description: product.description,
+            expiryDate: product.expiryDate,
+            validity: product.validity,
+            stock: product.stock,
+            stockEntryDate: product.stockEntryDate,
+            lowStockLimit: product.lowStockLimit,
+            overStockLimit: product.overStockLimit,
+            grammage: product.grammage,
+            tags: product.tags,
+            imageUrl: product.imageUrl,
+            categoryId: categoryId,
+            groupId: groupId,
+            subCategoryId: subCategoryId,
+          },
+        });
+        console.log(`✅ Created product: ${product.name} (${product.productCode})`);
+      } else {
+        console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
       }
     }
 
