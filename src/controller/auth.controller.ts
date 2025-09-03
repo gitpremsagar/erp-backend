@@ -15,7 +15,6 @@ export const signup = async (req: Request, res: Response) => {
     password, 
     name, 
     phone, 
-    privilegeId, 
     aadharNumber, 
     pan, 
     gstNumber, 
@@ -26,14 +25,6 @@ export const signup = async (req: Request, res: Response) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     return res.status(409).json({ message: "User already exists" });
-  }
-
-  // Check if privilege exists
-  const privilege = await prisma.userPrivilege.findUnique({
-    where: { id: privilegeId },
-  });
-  if (!privilege) {
-    return res.status(404).json({ message: "Invalid privilege ID" });
   }
 
   // Hash the password
@@ -50,11 +41,11 @@ export const signup = async (req: Request, res: Response) => {
         password: hashedPassword,
         name,
         phone,
-        privilegeId,
-        aadharNumber,
-        pan,
-        gstNumber,
-        address,
+        privilegeId: null,
+        aadharNumber: aadharNumber || null,
+        pan: pan || null,
+        gstNumber: gstNumber || null,
+        address: address || null,
       },
       include: {
         privilege: true,
@@ -275,6 +266,53 @@ export const getUserProfile = async (
     res.json({ user: userWithoutPassword });
   } catch (error) {
     console.error("Error getting user profile:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const assignPrivilege = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { userId, privilegeId } = req.body;
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if privilege exists
+    const privilege = await prisma.userPrivilege.findUnique({
+      where: { id: privilegeId },
+    });
+
+    if (!privilege) {
+      return res.status(404).json({ message: "Privilege not found" });
+    }
+
+    // Update user with new privilege
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { privilegeId },
+      include: {
+        privilege: true,
+      },
+    });
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = updatedUser;
+
+    res.json({
+      message: "Privilege assigned successfully",
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    console.error("Error assigning privilege:\n", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

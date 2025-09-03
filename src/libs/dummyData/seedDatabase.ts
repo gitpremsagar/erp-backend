@@ -11,11 +11,11 @@ export const seedDatabase = async () => {
     // Seed user privileges
     console.log("📋 Seeding user privileges...");
     for (const privilege of defaultPrivileges) {
-      const existingPrivilege = await prisma.userPrivilege.findUnique({
+      const existingPrivileges = await prisma.userPrivilege.findMany({
         where: { name: privilege.name },
       });
 
-      if (!existingPrivilege) {
+      if (existingPrivileges.length === 0) {
         await prisma.userPrivilege.create({
           data: privilege,
         });
@@ -34,11 +34,12 @@ export const seedDatabase = async () => {
 
     if (!existingAdmin) {
       // Get admin privilege
-      const adminPrivilege = await prisma.userPrivilege.findUnique({
+      const adminPrivileges = await prisma.userPrivilege.findMany({
         where: { name: "ADMIN" },
       });
 
-      if (adminPrivilege) {
+      if (adminPrivileges.length > 0) {
+        const adminPrivilege = adminPrivileges[0];
         const hashedPassword = await bcrypt.hash("admin123", 10);
         
         await prisma.user.create({
@@ -60,6 +61,34 @@ export const seedDatabase = async () => {
       }
     } else {
       console.log("⏭️  Default admin user already exists");
+    }
+
+    // Create a sample customer user if it doesn't exist
+    console.log("👤 Checking for sample customer user...");
+    const customerEmail = "customer@example.com";
+    const existingCustomer = await prisma.user.findUnique({
+      where: { email: customerEmail },
+    });
+
+    if (!existingCustomer) {
+      const hashedPassword = await bcrypt.hash("customer123", 10);
+      
+      await prisma.user.create({
+        data: {
+          email: customerEmail,
+          password: hashedPassword,
+          name: "Sample Customer",
+          phone: "8888888888",
+          privilegeId: null, // No privilege assigned initially
+          address: "Customer Address",
+        },
+      });
+      
+      console.log("✅ Created sample customer user");
+      console.log("📧 Email: customer@example.com");
+      console.log("🔑 Password: customer123");
+    } else {
+      console.log("⏭️  Sample customer user already exists");
     }
 
     console.log("🎉 Database seeding completed successfully!");

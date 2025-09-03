@@ -426,3 +426,19 @@ ACCESS_TOKEN_COOKIE_EXPIRY=3600000
 NODE_ENV="development"
 FRONTEND_DOMAIN="http://localhost:3000"
 ```
+
+## Schema Changes Summary
+
+The latest schema updates include:
+- `phone` field is now optional (`String?`)
+- `privilegeId` is optional and can be `null`
+- Users can be created without assigning privileges initially
+- Privileges can be assigned later through separate endpoints
+- The `assign-privilege` endpoint allows administrators to assign privileges to existing users
+
+## Important Notes
+
+1. **User Registration**: Users can now register without providing a `privilegeId`. The system will set it to `null` by default.
+2. **Privilege Assignment**: Use the `/auth/assign-privilege` endpoint to assign privileges to users after registration.
+3. **Phone Field**: The phone number is now optional during registration.
+4. **Backward Compatibility**: Existing users with privileges will continue to work as before.
