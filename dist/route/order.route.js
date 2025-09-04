@@ -1,0 +1,25 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const order_controller_1 = require("../controller/order.controller");
+const order_middleware_1 = require("../middleware/order.middleware");
+const router = express_1.default.Router();
+// Protected routes - require authentication
+// router.use(validateAccessToken);
+// Create a new order
+router.post("/", order_middleware_1.validateCreateOrder, order_controller_1.createOrder);
+// Get all orders with pagination and filtering
+router.get("/", order_middleware_1.validateOrderQuery, order_controller_1.getOrders);
+// Get order statistics
+router.get("/stats", order_controller_1.getOrderStats);
+// Get a single order by ID
+router.get("/:orderId", order_controller_1.getOrderById);
+// Update an order
+router.put("/:orderId", order_middleware_1.validateUpdateOrder, order_controller_1.updateOrder);
+// Delete an order
+router.delete("/:orderId", order_controller_1.deleteOrder);
+exports.default = router;
+//# sourceMappingURL=order.route.js.map

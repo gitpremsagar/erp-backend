@@ -94,7 +94,7 @@ exports.createProduct = createProduct;
 // Get all products with pagination and filtering
 const getProducts = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search, categoryId, groupId, subCategoryId, minPrice, maxPrice, } = req.query;
+        const { page = 1, limit = 2, search, categoryId, groupId, subCategoryId, minPrice, maxPrice, } = req.query;
         // Convert string values to numbers
         const pageNum = parseInt(page, 10) || 1;
         const limitNum = parseInt(limit, 10) || 10;

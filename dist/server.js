@@ -21,7 +21,7 @@ const userPrivilege_route_1 = __importDefault(require("./route/userPrivilege.rou
 const app = (0, express_1.default)();
 // allow all origins
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_DOMAIN || "https://frontend-blogging-platform.vercel.app" || "http://localhost:3000",
+    origin: process.env.FRONTEND_DOMAIN || "http://localhost:3000",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

@@ -102,14 +102,25 @@ export const createOrderItem = async (req: Request, res: Response) => {
 export const getOrderItems = async (req: Request, res: Response) => {
   try {
     const {
-      page = 1,
-      limit = 10,
+      page = "1",
+      limit = "10",
       orderId,
       productId,
       orderCompleted,
     } = req.query as any;
 
-    const skip = (page - 1) * limit;
+    // Convert string parameters to numbers
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    
+    // Validate parameters
+    if (isNaN(pageNum) || isNaN(limitNum) || pageNum < 1 || limitNum < 1) {
+      return res.status(400).json({ 
+        message: "Invalid pagination parameters. Page and limit must be positive numbers." 
+      });
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // Build where clause
     const where: any = {};
@@ -130,7 +141,7 @@ export const getOrderItems = async (req: Request, res: Response) => {
       prisma.orderItem.findMany({
         where,
         skip,
-        take: limit,
+        take: limitNum,
         include: {
           Order: true,
           Product: {
@@ -147,17 +158,17 @@ export const getOrderItems = async (req: Request, res: Response) => {
       prisma.orderItem.count({ where }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limitNum);
 
     res.json({
       orderItems,
       pagination: {
-        page,
-        limit,
+        page: pageNum,
+        limit: limitNum,
         total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1,
       },
     });
   } catch (error) {
