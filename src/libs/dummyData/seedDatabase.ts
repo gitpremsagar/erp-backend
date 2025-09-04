@@ -6,6 +6,9 @@ import { defaultGroups } from "./defaultGroups";
 import { defaultSubCategories } from "./defaultSubCategories";
 import { defaultProducts } from "./defaultProducts";
 import { defaultCustomers } from "./defaultCustomers";
+import { defaultOrders } from "./defaultOrders";
+import { defaultOrderItems } from "./defaultOrderItems";
+import { defaultVehicles } from "./defaultVehicles";
 
 const prisma = new PrismaClient();
 
@@ -259,6 +262,127 @@ export const seedDatabase = async () => {
       console.log("🔑 Password: customer123");
     } else {
       console.log("⏭️  Sample customer user already exists");
+    }
+
+    // Seed vehicles
+    console.log("🚛 Seeding vehicles...");
+    const vehicleMap = new Map<string, string>(); // vehicleNumber -> id mapping
+    
+    for (const vehicle of defaultVehicles) {
+      const existingVehicle = await prisma.vehicle.findUnique({
+        where: { vehicleNumber: vehicle.vehicleNumber },
+      });
+
+      if (!existingVehicle) {
+        const createdVehicle = await prisma.vehicle.create({
+          data: vehicle,
+        });
+        vehicleMap.set(vehicle.vehicleNumber, createdVehicle.id);
+        console.log(`✅ Created vehicle: ${vehicle.vehicleName} (${vehicle.vehicleNumber})`);
+      } else {
+        vehicleMap.set(vehicle.vehicleNumber, existingVehicle.id);
+        console.log(`⏭️  Vehicle already exists: ${vehicle.vehicleName} (${vehicle.vehicleNumber})`);
+      }
+    }
+
+    // Seed orders
+    console.log("📦 Seeding orders...");
+    const orderMap = new Map<number, string>(); // orderIndex -> id mapping
+    
+    for (let i = 0; i < defaultOrders.length; i++) {
+      const order = defaultOrders[i];
+      
+      // Find customer by email
+      const customer = await prisma.user.findUnique({
+        where: { email: order.customerEmail },
+      });
+
+      if (!customer) {
+        console.log(`❌ Customer not found for order ${i + 1}: ${order.customerEmail}`);
+        continue;
+      }
+
+      // Create delivery address if provided
+      let deliveryAddressId: string | undefined;
+      if (order.deliveryAddress) {
+        const deliveryAddress = await prisma.deliveryAddress.create({
+          data: {
+            userId: customer.id,
+            address: order.deliveryAddress,
+            default: false,
+          },
+        });
+        deliveryAddressId = deliveryAddress.id;
+      }
+
+      // Get vehicle ID if assigned
+      let vehicleId: string | undefined;
+      if (order.vehicleNumber) {
+        vehicleId = vehicleMap.get(order.vehicleNumber);
+        if (!vehicleId) {
+          console.log(`⚠️  Vehicle not found for order ${i + 1}: ${order.vehicleNumber}`);
+        }
+      }
+
+      // Create order
+      const createdOrder = await prisma.order.create({
+        data: {
+          status: order.status,
+          totalPrice: order.totalPrice,
+          orderDate: order.orderDate,
+          customerId: customer.id,
+          deliveryAddressId: deliveryAddressId,
+          vehicleId: vehicleId,
+        },
+      });
+      
+      orderMap.set(i, createdOrder.id);
+      console.log(`✅ Created order ${i + 1}: ${order.status} - ₹${order.totalPrice}`);
+    }
+
+    // Seed order items
+    console.log("🛒 Seeding order items...");
+    for (const orderItem of defaultOrderItems) {
+      const orderId = orderMap.get(orderItem.orderIndex);
+      if (!orderId) {
+        console.log(`❌ Order not found for order item: ${orderItem.productCode}`);
+        continue;
+      }
+
+      // Find product by product code
+      const product = await prisma.product.findUnique({
+        where: { productCode: orderItem.productCode },
+      });
+
+      if (!product) {
+        console.log(`❌ Product not found for order item: ${orderItem.productCode}`);
+        continue;
+      }
+
+      // Find customer from the order
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { customer: true },
+      });
+
+      if (!order) {
+        console.log(`❌ Order not found for order item: ${orderItem.productCode}`);
+        continue;
+      }
+
+      // Create order item
+      await prisma.orderItem.create({
+        data: {
+          orderId: orderId,
+          productId: product.id,
+          quantity: orderItem.quantity,
+          deliveryDate: orderItem.deliveryDate,
+          orderCompleted: orderItem.orderCompleted,
+          customerId: order.customer.id,
+        },
+      });
+      
+      console.log(`✅ Created order item: ${product.name} x${orderItem.quantity} for order ${orderItem.orderIndex + 1}`);
     }
 
     console.log("🎉 Database seeding completed successfully!");
