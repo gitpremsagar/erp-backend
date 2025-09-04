@@ -12,7 +12,7 @@ export const CreateOrderSchema = z.object({
     .optional(),
   vehicleId: z
     .string()
-    .min(24, "Invalid vehicle ID")
+    .min(1, "Invalid vehicle ID")
     .max(24, "Invalid vehicle ID")
     .optional(),
   deliveryAddressId: z
