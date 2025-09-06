@@ -14,19 +14,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//========================USER CENTRIC MODELS========================
+
 enum UserType {
   ADMIN
   ORDER_PROCESSOR
   CUSTOMER
   EMPLOYEE
+  FINANCE_MANAGER
+  STOCK_MANAGER
 }
 
 model User {
   id              String            @id @default(auto()) @map("_id") @db.ObjectId
   email           String            @unique
-  phone           String?
   name            String
   password        String
+  phone           String?
   privilegeId     String?           @db.ObjectId
   aadharNumber    Int?
   pan             String?
@@ -35,10 +39,11 @@ model User {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   privilege       UserPrivilege?    @relation(fields: [privilegeId], references: [id])
-  StockEntry      StockEntry[]
+  StockRecord      StockRecord[]
   Order           Order[]
   DeliveryAddress DeliveryAddress[]
   OrderItem       OrderItem[]
+  Product         Product[]
 }
 
 model UserPrivilege {
@@ -50,60 +55,60 @@ model UserPrivilege {
   User        User[]
 }
 
+//========================PRODUCT CENTRIC MODELS========================
+
 model Product {
-  id                    String       @id @default(auto()) @map("_id") @db.ObjectId
-  name                  String
-  mrp                   Int
-  productCode           String       @unique
-  description           String
-  expiryDate            DateTime
-  validity              String
-  stock                 Int          @default(0)
-  stockEntryDate        DateTime
-  lowStockLimit         Int          @default(0)
-  overStockLimit        Int          @default(0)
-  grammage              Int
-  lowStockAlertColor    String       @default("#008000") // green
-  lowStockAlertMessage  String       @default("Low Stock")
-  overStockAlertColor   String       @default("#FF0000") // red
-  overStockAlertMessage String       @default("Over Stock")
-  inStockAlertColor     String       @default("#00008B") // blue
-  inStockAlertMessage   String       @default("In Stock")
-  expiryAlertDays       Int          @default(0)
-  expiryAlertColor      String       @default("#FF0000") // red
-  expiryAlertMessage    String       @default("Expired")
-  tags                  String[]
-  imageUrl              String
-  categoryId            String       @db.ObjectId
-  groupId               String       @db.ObjectId
-  subCategoryId         String       @db.ObjectId
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  Group                 Group        @relation(fields: [groupId], references: [id])
-  SubCategory           SubCategory  @relation(fields: [subCategoryId], references: [id])
-  Category              Category     @relation(fields: [categoryId], references: [id])
-  OrderItem             OrderItem[]
-  StockEntry            StockEntry[]
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  mrp                Int
+  productCode        String               @unique
+  lowStockLimit      Int                  @default(0)
+  overStockLimit     Int                  @default(0)
+  categoryId         String               @db.ObjectId
+  subCategoryId      String               @db.ObjectId
+  creatorId          String               @db.ObjectId
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  description        String?
+  grammage           Int?
+  imageUrl           String?
+  SubCategory        SubCategory          @relation(fields: [subCategoryId], references: [id])
+  Category           Category             @relation(fields: [categoryId], references: [id])
+  OrderItem          OrderItem[]
+  StockRecord         StockRecord[]
+  Stock              Stock[]
+  ProductTagRelation ProductTagRelation[]
+  User               User                 @relation(fields: [creatorId], references: [id])
 }
 
-model StockEntry {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId     String   @db.ObjectId
-  changeInStock Int
-  createdAt     DateTime @default(now())
-  updatedBy     String   @db.ObjectId
-  updatedAt     DateTime @updatedAt
-  Product       Product  @relation(fields: [productId], references: [id])
-  User          User     @relation(fields: [updatedBy], references: [id])
+model ProductTag {
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  ProductTagRelation ProductTagRelation[]
 }
 
-model Group {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
-  description String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  Product     Product[]
+model ProductTagRelation {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  productId    String     @db.ObjectId
+  productTagId String     @db.ObjectId
+  Product      Product    @relation(fields: [productId], references: [id])
+  ProductTag   ProductTag @relation(fields: [productTagId], references: [id])
+}
+
+model ColorCode {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  lowStockAlertColor    String   @default("#008000") // green
+  lowStockAlertMessage  String   @default("Low Stock")
+  overStockAlertColor   String   @default("#FF0000") // red
+  overStockAlertMessage String   @default("Over Stock")
+  inStockAlertColor     String   @default("#00008B") // blue
+  inStockAlertMessage   String   @default("In Stock")
+  expiryAlertColor      String   @default("#FF0000") // red
+  expiryAlertMessage    String   @default("Expired")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model Category {
@@ -127,6 +132,46 @@ model SubCategory {
   Product     Product[]
 }
 
+model Stock {
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  stockId           String       @unique //this id will be provided by the admin
+  productId         String       @db.ObjectId
+  manufacturingDate DateTime
+  arrivalDate       DateTime
+  validityMonths    Int          @default(10)
+  expiryDate        DateTime
+  supplierName      String?
+  supplierId        String?      @db.ObjectId
+  stockQuantity     Int          @default(0)
+  isArchived        Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  product           Product      @relation(fields: [productId], references: [id])
+  StockRecord        StockRecord[]
+}
+
+enum StockRecordEntryReason {
+  ARRIVAL_FROM_SUPPLIER
+  DELIVERED_TO_CUSTOMER
+  CORRECTION_BY_ADMIN
+}
+
+model StockRecord {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  productId     String           @db.ObjectId
+  changeInStock Int              @default(0)
+  createdBy     String           @db.ObjectId
+  createdAt     DateTime         @default(now())
+  stockId       String
+  reason        StockRecordEntryReason
+  Product       Product          @relation(fields: [productId], references: [id])
+  Stock         Stock            @relation(fields: [stockId], references: [stockId])
+  User          User             @relation(fields: [createdBy], references: [id])
+  Order         Order[]
+}
+
+//========================ORDER CENTRIC MODELS========================
+
 model Order {
   id                String           @id @default(auto()) @map("_id") @db.ObjectId
   customeOrderId    String           @unique @default(uuid())
@@ -143,23 +188,8 @@ model Order {
   deliveryAddress   DeliveryAddress? @relation(fields: [deliveryAddressId], references: [id])
   OrderItem         OrderItem[]
   originalOrderId   String?          @db.ObjectId
-}
-
-model OriginalOrder {
-  id                String              @id @default(auto()) @map("_id") @db.ObjectId
-  originalOrderId   String              @db.ObjectId
-  orderDate         DateTime
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  OriginalOrderItem OriginalOrderItem[]
-}
-
-model OriginalOrderItem {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  originalOrderId String        @db.ObjectId
-  productId       String        @db.ObjectId
-  quantity        Int
-  OriginalOrder   OriginalOrder @relation(fields: [originalOrderId], references: [id])
+  stockRecordId     String?          @db.ObjectId
+  stockRecord       StockRecord?     @relation(fields: [stockRecordId], references: [id])
 }
 
 enum OrderStatus {
@@ -196,6 +226,25 @@ model DeliveryAddress {
   User      User     @relation(fields: [userId], references: [id])
   Order     Order[]
 }
+
+model OriginalOrder {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  originalOrderId   String              @db.ObjectId
+  orderDate         DateTime
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  OriginalOrderItem OriginalOrderItem[]
+}
+
+model OriginalOrderItem {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  originalOrderId String        @db.ObjectId
+  productId       String        @db.ObjectId
+  quantity        Int
+  OriginalOrder   OriginalOrder @relation(fields: [originalOrderId], references: [id])
+}
+
+//========================VEHICLE CENTRIC MODELS========================
 
 model Vehicle {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
