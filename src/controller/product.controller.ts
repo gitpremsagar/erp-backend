@@ -11,26 +11,21 @@ export const createProduct = async (req: Request, res: Response) => {
       mrp,
       productCode,
       description,
-      expiryDate,
-      validity,
-      stock,
-      stockEntryDate,
       lowStockLimit,
       overStockLimit,
-      lowStockAlertColor,
-      lowStockAlertMessage,
-      overStockAlertColor,
-      overStockAlertMessage,
-      inStockAlertColor,
-      inStockAlertMessage,
-      expiryAlertDays,
-      expiryAlertColor,
-      expiryAlertMessage,
-      tags,
       categoryId,
-      groupId,
       subCategoryId,
       grammage,
+      imageUrl,
+      tags,
+      // Stock related fields
+      stockId,
+      manufacturingDate,
+      arrivalDate,
+      validityMonths,
+      supplierName,
+      supplierId,
+      stockQuantity,
     } = req.body;
 
     // Get user ID from request (assuming it's set by auth middleware)
@@ -48,75 +43,109 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Product code already exists" });
     }
 
-    // Verify that category, group, and subcategory exist
-    const [category, group, subCategory] = await Promise.all([
+    // Verify that category and subcategory exist
+    const [category, subCategory] = await Promise.all([
       prisma.category.findUnique({ where: { id: categoryId } }),
-      prisma.group.findUnique({ where: { id: groupId } }),
       prisma.subCategory.findUnique({ where: { id: subCategoryId } }),
     ]);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
-    if (!group) {
-      return res.status(404).json({ message: "Group not found" });
-    }
     if (!subCategory) {
       return res.status(404).json({ message: "Sub-category not found" });
     }
 
-    // Create product and stock entry in a transaction
+    // Create product, stock, and tag relations in a transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Create the product
       const product = await tx.product.create({
         data: {
           name,
           mrp,
           productCode,
           description,
-          expiryDate: new Date(expiryDate),
-          validity,
-          stock,
-          stockEntryDate: new Date(stockEntryDate),
-          lowStockLimit: lowStockLimit || 20, // TODO: get from stock setting
-          overStockLimit: overStockLimit || 100, // TODO: get from stock setting
-          lowStockAlertColor: lowStockAlertColor || "#008000", // TODO: get from stock setting
-          lowStockAlertMessage: lowStockAlertMessage || "Low Stock", // TODO: get from stock setting
-          overStockAlertColor: overStockAlertColor || "#FF0000", // TODO: get from stock setting
-          overStockAlertMessage: overStockAlertMessage || "Over Stock", // TODO: get from stock setting
-          inStockAlertColor: inStockAlertColor || "#00008B", // TODO: get from stock setting
-          inStockAlertMessage: inStockAlertMessage || "In Stock", // TODO: get from stock setting
-          expiryAlertDays: expiryAlertDays || 5, // TODO: get from stock setting
-          expiryAlertColor: expiryAlertColor || "#FF0000", // TODO: get from stock setting
-          expiryAlertMessage: expiryAlertMessage || "Expired", // TODO: get from stock setting
-          tags: tags || [],
-          imageUrl: "http://example.com/image.jpg",
+          lowStockLimit: lowStockLimit || 0,
+          overStockLimit: overStockLimit || 0,
           categoryId,
-          groupId,
           subCategoryId,
+          creatorId: userId,
           grammage,
+          imageUrl,
         },
         include: {
           Category: true,
-          Group: true,
           SubCategory: true,
+          User: true,
         },
       });
 
-      // Create stock entry record
-      const stockEntry = await tx.stockEntry.create({
-        data: {
-          productId: product.id,
-          changeInStock: stock,
-          updatedBy: userId,
-        },
-      });
+      // Create stock entry if stock data is provided
+      let stock = null;
+      if (stockId && stockQuantity !== undefined) {
+        const expiryDate = new Date(manufacturingDate);
+        expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 10));
 
-      return { product, stockEntry };
+        stock = await tx.stock.create({
+          data: {
+            stockId,
+            productId: product.id,
+            manufacturingDate: new Date(manufacturingDate),
+            arrivalDate: new Date(arrivalDate),
+            validityMonths: validityMonths || 1,
+            expiryDate,
+            supplierName,
+            supplierId,
+            stockQuantity,
+          },
+        });
+
+        // Create stock record for the initial stock entry
+        await tx.stockRecord.create({
+          data: {
+            productId: product.id,
+            changeInStock: stockQuantity,
+            createdBy: userId,
+            stockId: stock.stockId,
+            reason: "ARRIVAL_FROM_SUPPLIER",
+          },
+        });
+      }
+
+      // Create product tag relations if tags are provided
+      const tagRelations = [];
+      if (tags && tags.length > 0) {
+        for (const tagName of tags) {
+          // Find or create the tag
+          let tag = await tx.productTag.findFirst({
+            where: { name: tagName },
+          });
+
+          if (!tag) {
+            tag = await tx.productTag.create({
+              data: { name: tagName },
+            });
+          }
+
+          // Create the relation
+          const relation = await tx.productTagRelation.create({
+            data: {
+              productId: product.id,
+              productTagId: tag.id,
+            },
+          });
+
+          tagRelations.push(relation);
+        }
+      }
+
+      return { product, stock, tagRelations };
     });
 
     res.status(201).json({
       product: result.product,
-      stockEntry: result.stockEntry,
+      stock: result.stock,
+      tagRelations: result.tagRelations,
     });
   } catch (error) {
     console.error("Error creating product:\n", error);
@@ -129,10 +158,9 @@ export const getProducts = async (req: Request, res: Response) => {
   try {
     const {
       page = 1,
-      limit = 2,
+      limit = 10,
       search,
       categoryId,
-      groupId,
       subCategoryId,
       minPrice,
       maxPrice,
@@ -159,10 +187,6 @@ export const getProducts = async (req: Request, res: Response) => {
       where.categoryId = categoryId;
     }
 
-    if (groupId) {
-      where.groupId = groupId;
-    }
-
     if (subCategoryId) {
       where.subCategoryId = subCategoryId;
     }
@@ -177,11 +201,17 @@ export const getProducts = async (req: Request, res: Response) => {
       prisma.product.findMany({
         where,
         skip,
-        take: limitNum,  // Now it's a number
+        take: limitNum,
         include: {
           Category: true,
-          Group: true,
           SubCategory: true,
+          User: true,
+          ProductTagRelation: {
+            include: {
+              ProductTag: true,
+            },
+          },
+          Stock: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -193,8 +223,8 @@ export const getProducts = async (req: Request, res: Response) => {
     res.json({
       products,
       pagination: {
-        page: pageNum,  // Use the converted number
-        limit: limitNum,  // Use the converted number
+        page: pageNum,
+        limit: limitNum,
         total,
         totalPages,
         hasNext: pageNum < totalPages,
@@ -216,8 +246,20 @@ export const getProductById = async (req: Request, res: Response) => {
       where: { id },
       include: {
         Category: true,
-        Group: true,
         SubCategory: true,
+        User: true,
+        ProductTagRelation: {
+          include: {
+            ProductTag: true,
+          },
+        },
+        Stock: true,
+        StockRecord: {
+          include: {
+            User: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -261,22 +303,13 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // Verify that category, group, and subcategory exist if they're being updated
+    // Verify that category and subcategory exist if they're being updated
     if (updateData.categoryId) {
       const category = await prisma.category.findUnique({
         where: { id: updateData.categoryId },
       });
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
-      }
-    }
-
-    if (updateData.groupId) {
-      const group = await prisma.group.findUnique({
-        where: { id: updateData.groupId },
-      });
-      if (!group) {
-        return res.status(404).json({ message: "Group not found" });
       }
     }
 
@@ -289,12 +322,40 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // Convert date strings to Date objects if provided
-    if (updateData.expiryDate) {
-      updateData.expiryDate = new Date(updateData.expiryDate);
-    }
-    if (updateData.stockEntryDate) {
-      updateData.stockEntryDate = new Date(updateData.stockEntryDate);
+    // Handle tag updates if provided
+    let tagRelations = [];
+    if (updateData.tags) {
+      // Remove existing tag relations
+      await prisma.productTagRelation.deleteMany({
+        where: { productId: id },
+      });
+
+      // Create new tag relations
+      for (const tagName of updateData.tags) {
+        // Find or create the tag
+        let tag = await prisma.productTag.findFirst({
+          where: { name: tagName },
+        });
+
+        if (!tag) {
+          tag = await prisma.productTag.create({
+            data: { name: tagName },
+          });
+        }
+
+        // Create the relation
+        const relation = await prisma.productTagRelation.create({
+          data: {
+            productId: id,
+            productTagId: tag.id,
+          },
+        });
+
+        tagRelations.push(relation);
+      }
+
+      // Remove tags from updateData as it's handled separately
+      delete updateData.tags;
     }
 
     const product = await prisma.product.update({
@@ -302,12 +363,18 @@ export const updateProduct = async (req: Request, res: Response) => {
       data: updateData,
       include: {
         Category: true,
-        Group: true,
         SubCategory: true,
+        User: true,
+        ProductTagRelation: {
+          include: {
+            ProductTag: true,
+          },
+        },
+        Stock: true,
       },
     });
 
-    res.json({ product });
+    res.json({ product, tagRelations });
   } catch (error) {
     console.error("Error updating product:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -354,14 +421,23 @@ export const deleteProduct = async (req: Request, res: Response) => {
 // Get product statistics
 export const getProductStats = async (req: Request, res: Response) => {
   try {
-    const [totalProducts, lowStockProducts, totalValue] = await Promise.all([
+    const [totalProducts, totalValue, lowStockProducts] = await Promise.all([
       prisma.product.count(),
-      prisma.product.count({
-        where: { stock: { lte: 10 } },
-      }),
       prisma.product.aggregate({
         _sum: {
           mrp: true,
+        },
+      }),
+      // Count products with low stock (stock quantity <= lowStockLimit)
+      prisma.product.count({
+        where: {
+          Stock: {
+            some: {
+              stockQuantity: {
+                lte: 10, // Default low stock threshold
+              },
+            },
+          },
         },
       }),
     ]);

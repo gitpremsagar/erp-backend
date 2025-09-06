@@ -20,17 +20,6 @@ export const CreateProductSchema = z.object({
     .min(1, "Description is required")
     .max(1000, "Description must be at most 1000 characters long")
     .trim(),
-  expiryDate: z.string().datetime("Invalid expiry date format"),
-  validity: z
-    .string()
-    .min(1, "Validity is required")
-    .max(100, "Validity must be at most 100 characters long")
-    .trim(),
-  stock: z
-    .number()
-    .int("Stock must be an integer")
-    .min(0, "Stock cannot be negative"),
-  stockEntryDate: z.string().datetime("Invalid stock entry date format"),
   lowStockLimit: z
     .number()
     .int("Low stock limit must be an integer")
@@ -41,56 +30,10 @@ export const CreateProductSchema = z.object({
     .int("Over stock limit must be an integer")
     .min(0, "Over stock limit cannot be negative")
     .optional(),
-  lowStockAlertColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-    .optional(),
-  lowStockAlertMessage: z
-    .string()
-    .max(100, "Low stock alert message must be at most 100 characters long")
-    .optional(),
-  overStockAlertColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-    .optional(),
-  overStockAlertMessage: z
-    .string()
-    .max(100, "Over stock alert message must be at most 100 characters long")
-    .optional(),
-  inStockAlertColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-    .optional(),
-  inStockAlertMessage: z
-    .string()
-    .max(100, "In stock alert message must be at most 100 characters long")
-    .optional(),
-  expiryAlertDays: z
-    .number()
-    .int("Expiry alert days must be an integer")
-    .min(0, "Expiry alert days cannot be negative")
-    .optional(),
-  expiryAlertColor: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-    .optional(),
-  expiryAlertMessage: z
-    .string()
-    .max(100, "Expiry alert message must be at most 100 characters long")
-    .optional(),
-  tags: z.array(z.string().trim()).optional(),
-  imageUrl: z
-    .string()
-    .url("Invalid image URL format")
-    .trim(),
   categoryId: z
     .string()
     .min(24, "Invalid category ID")
     .max(24, "Invalid category ID"),
-  groupId: z
-    .string()
-    .min(24, "Invalid group ID")
-    .max(24, "Invalid group ID"),
   subCategoryId: z
     .string()
     .min(24, "Invalid sub-category ID")
@@ -98,7 +41,47 @@ export const CreateProductSchema = z.object({
   grammage: z
     .number()
     .int("Grammage must be an integer")
-    .positive("Grammage must be a positive number"),
+    .positive("Grammage must be a positive number")
+    .optional(),
+  imageUrl: z
+    .string()
+    .url("Invalid image URL format")
+    .trim()
+    .optional(),
+  tags: z.array(z.string().trim()).optional(),
+  // Stock related fields (optional for product creation)
+  stockId: z
+    .string()
+    .min(1, "Stock ID is required if creating stock")
+    .optional(),
+  manufacturingDate: z
+    .string()
+    .datetime("Invalid manufacturing date format")
+    .optional(),
+  arrivalDate: z
+    .string()
+    .datetime("Invalid arrival date format")
+    .optional(),
+  validityMonths: z
+    .number()
+    .int("Validity months must be an integer")
+    .min(1, "Validity months must be at least 1")
+    .optional(),
+  supplierName: z
+    .string()
+    .max(200, "Supplier name must be at most 200 characters long")
+    .trim()
+    .optional(),
+  supplierId: z
+    .string()
+    .min(24, "Invalid supplier ID")
+    .max(24, "Invalid supplier ID")
+    .optional(),
+  stockQuantity: z
+    .number()
+    .int("Stock quantity must be an integer")
+    .min(0, "Stock quantity cannot be negative")
+    .optional(),
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();
@@ -108,7 +91,6 @@ export const ProductQuerySchema = z.object({
   limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
   search: z.string().optional(),
   categoryId: z.string().optional(),
-  groupId: z.string().optional(),
   subCategoryId: z.string().optional(),
   minPrice: z.string().optional().transform(val => val ? parseInt(val) : undefined),
   maxPrice: z.string().optional().transform(val => val ? parseInt(val) : undefined),
