@@ -164,6 +164,7 @@ export const getProducts = async (req: Request, res: Response) => {
       subCategoryId,
       minPrice,
       maxPrice,
+      productTagIds,
     } = req.query as any;
 
     // Convert string values to numbers
@@ -197,6 +198,21 @@ export const getProducts = async (req: Request, res: Response) => {
       if (maxPrice !== undefined) where.mrp.lte = maxPrice;
     }
 
+    if (productTagIds) {
+      // Handle both single tag ID and multiple tag IDs
+      const tagIds = Array.isArray(productTagIds) 
+        ? productTagIds 
+        : productTagIds.split(',').map((id: string) => id.trim());
+      
+      where.ProductTagRelation = {
+        some: {
+          productTagId: {
+            in: tagIds,
+          },
+        },
+      };
+    }
+
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -221,8 +237,7 @@ export const getProducts = async (req: Request, res: Response) => {
               name: true,
             },
           },
-          ProductTagRelation: {
-            
+          ProductTagRelation: {            
             include: {
               ProductTag: {
                 select: {
