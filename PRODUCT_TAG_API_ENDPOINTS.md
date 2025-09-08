@@ -68,6 +68,29 @@ GET /api/product-tags?page=1&limit=10&search=electronics
       "name": "string",
       "createdAt": "datetime",
       "updatedAt": "datetime",
+      "ProductTagRelation": [
+        {
+          "id": "string",
+          "productId": "string",
+          "productTagId": "string",
+          "Product": {
+            "id": "string",
+            "name": "string",
+            "productCode": "string",
+            "mrp": "number",
+            "description": "string",
+            "imageUrl": "string",
+            "Category": {
+              "id": "string",
+              "name": "string"
+            },
+            "SubCategory": {
+              "id": "string",
+              "name": "string"
+            }
+          }
+        }
+      ],
       "_count": {
         "ProductTagRelation": 5
       }
