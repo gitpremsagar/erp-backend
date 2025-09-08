@@ -15,6 +15,7 @@ import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
 import deliveryAddressRouteHandler from "./route/deliveryAddress.route";
 import userPrivilegeRouteHandler from "./route/userPrivilege.route";
+import productTagRouteHandler from "./route/productTag.route";
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use("/api/orders", orderRouteHandler);
 app.use("/api/order-items", orderItemRouteHandler);
 app.use("/api/customers", customerRouteHandler);
 app.use("/api/delivery-addresses", deliveryAddressRouteHandler);
+app.use("/api/product-tags", productTagRouteHandler);
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
