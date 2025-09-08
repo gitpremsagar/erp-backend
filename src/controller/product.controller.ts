@@ -203,15 +203,42 @@ export const getProducts = async (req: Request, res: Response) => {
         skip,
         take: limitNum,
         include: {
-          Category: true,
-          SubCategory: true,
-          User: true,
-          ProductTagRelation: {
-            include: {
-              ProductTag: true,
+          Category: {
+            select: {
+              id: true,
+              name: true,
             },
           },
-          Stock: true,
+          SubCategory: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          User: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          ProductTagRelation: {
+            
+            include: {
+              ProductTag: {
+                select: {
+                  id: true,
+                  name: true,
+                }
+              }
+            },
+          },
+          Stock: {
+            select: {
+              id: true,
+              stockId: true,
+              stockQuantity: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
