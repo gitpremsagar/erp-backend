@@ -30,6 +30,7 @@ export const createProductTag = async (req: Request, res: Response) => {
 
 // Get all product tags with pagination and filtering
 export const getProductTags = async (req: Request, res: Response) => {
+  // console.log("getProductTags called \n");
   try {
     const {
       page = 1,

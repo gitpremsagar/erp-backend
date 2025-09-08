@@ -39,7 +39,7 @@ model User {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   privilege       UserPrivilege?    @relation(fields: [privilegeId], references: [id])
-  StockRecord      StockRecord[]
+  StockRecord     StockRecord[]
   Order           Order[]
   DeliveryAddress DeliveryAddress[]
   OrderItem       OrderItem[]
@@ -75,7 +75,7 @@ model Product {
   SubCategory        SubCategory          @relation(fields: [subCategoryId], references: [id])
   Category           Category             @relation(fields: [categoryId], references: [id])
   OrderItem          OrderItem[]
-  StockRecord         StockRecord[]
+  StockRecord        StockRecord[]
   Stock              Stock[]
   ProductTagRelation ProductTagRelation[]
   User               User                 @relation(fields: [creatorId], references: [id])
@@ -133,21 +133,21 @@ model SubCategory {
 }
 
 model Stock {
-  id                String       @id @default(auto()) @map("_id") @db.ObjectId
-  stockId           String       @unique //this id will be provided by the admin
-  productId         String       @db.ObjectId
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  stockId           String        @unique //this id will be provided by the admin
+  productId         String        @db.ObjectId
   manufacturingDate DateTime
   arrivalDate       DateTime
-  validityMonths    Int          @default(10)
+  validityMonths    Int           @default(10)
   expiryDate        DateTime
   supplierName      String?
-  supplierId        String?      @db.ObjectId
-  stockQuantity     Int          @default(0)
-  isArchived        Boolean      @default(false)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  product           Product      @relation(fields: [productId], references: [id])
-  StockRecord        StockRecord[]
+  supplierId        String?       @db.ObjectId
+  stockQuantity     Int           @default(0)
+  isArchived        Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  product           Product       @relation(fields: [productId], references: [id])
+  StockRecord       StockRecord[]
 }
 
 enum StockRecordEntryReason {
@@ -157,16 +157,16 @@ enum StockRecordEntryReason {
 }
 
 model StockRecord {
-  id            String           @id @default(auto()) @map("_id") @db.ObjectId
-  productId     String           @db.ObjectId
-  changeInStock Int              @default(0)
-  createdBy     String           @db.ObjectId
-  createdAt     DateTime         @default(now())
+  id            String                 @id @default(auto()) @map("_id") @db.ObjectId
+  productId     String                 @db.ObjectId
+  changeInStock Int                    @default(0)
+  createdBy     String                 @db.ObjectId
+  createdAt     DateTime               @default(now())
   stockId       String
   reason        StockRecordEntryReason
-  Product       Product          @relation(fields: [productId], references: [id])
-  Stock         Stock            @relation(fields: [stockId], references: [stockId])
-  User          User             @relation(fields: [createdBy], references: [id])
+  Product       Product                @relation(fields: [productId], references: [id])
+  Stock         Stock                  @relation(fields: [stockId], references: [stockId])
+  User          User                   @relation(fields: [createdBy], references: [id])
   Order         Order[]
 }
 

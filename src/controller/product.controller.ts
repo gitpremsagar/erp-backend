@@ -155,6 +155,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 // Get all products with pagination and filtering
 export const getProducts = async (req: Request, res: Response) => {
+  // console.log("getProducts");
   try {
     const {
       page = 1,
