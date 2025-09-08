@@ -33,7 +33,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.get("/", (req, res) => {
-  res.send("Hello World! Edited");
+  res.send("Hello World! Testing!");
 });
 
 // endpoints
