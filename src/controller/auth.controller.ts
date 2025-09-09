@@ -105,7 +105,7 @@ export const signin = async (req: Request, res: Response) => {
     { expiresIn: +process.env.REFRESH_TOKEN_JWT_EXPIRY! }
   );
 
-  // send refresh token to client
+  // send refresh and access token to client
   res
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -124,8 +124,9 @@ export const signin = async (req: Request, res: Response) => {
 
 export const signout = async (req: Request, res: Response) => {
   // remove refresh token cookie
+  // console.log("signout");
   res
-    .status(204)
+    .status(200)
     .cookie("refreshToken", "", {
       httpOnly: true,
       secure: false,
@@ -137,7 +138,7 @@ export const signout = async (req: Request, res: Response) => {
       maxAge: 0,
       path: "/",
     })
-    .send();
+    .json({ success: true, message: "Logged out successfully" });
   return;
 };
 
@@ -173,12 +174,6 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       email: userWithoutPassword.email,
       name: userWithoutPassword.name,
       userType: userWithoutPassword.userType,
-      phone: userWithoutPassword.phone,
-      privilege: userWithoutPassword.privilege,
-      aadharNumber: userWithoutPassword.aadharNumber,
-      pan: userWithoutPassword.pan,
-      gstNumber: userWithoutPassword.gstNumber,
-      address: userWithoutPassword.address,
     };
 
     // Generate new access token
@@ -188,11 +183,14 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY! }
     );
 
-    res.cookie("accessToken", accessToken, {
+    res
+    .status(200)
+    .cookie("accessToken", accessToken, {
       maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY!,
       path: "/",
     })
-      .send({ accessToken, user: userData });
+      .json({ accessToken, user: userData });
+    return;
   } catch (error: any) {
     if (
       error.name === "TokenExpiredError" ||
