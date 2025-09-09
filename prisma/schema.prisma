@@ -30,6 +30,7 @@ model User {
   email           String            @unique
   name            String
   password        String
+  userType        UserType          @default(CUSTOMER)
   phone           String?
   privilegeId     String?           @db.ObjectId
   aadharNumber    Int?

@@ -23,6 +23,7 @@ export const SignupFormSchema = z
     pan: z.string().optional(),
     gstNumber: z.string().optional(),
     address: z.string().optional(),
+    userType: z.enum(["ADMIN", "ORDER_PROCESSOR", "CUSTOMER", "EMPLOYEE", "FINANCE_MANAGER", "STOCK_MANAGER"]).optional(),
     confirmPassword: z
       .string()
       .min(6, "Confirm Password must be at least 6 characters long")
