@@ -68,6 +68,7 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 export const signin = async (req: Request, res: Response) => {
+  // console.log("signin");
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -108,9 +109,9 @@ export const signin = async (req: Request, res: Response) => {
   res
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      sameSite: "none",
+      sameSite: "lax",
       path: "/",
     })
     .cookie("accessToken", accessToken, {
@@ -127,9 +128,9 @@ export const signout = async (req: Request, res: Response) => {
     .status(204)
     .cookie("refreshToken", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       maxAge: 0,
-      sameSite: "none",
+      sameSite: "lax",
       path: "/",
     })
     .cookie("accessToken", "", {
