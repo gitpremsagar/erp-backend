@@ -80,13 +80,13 @@ export const createOrderItem = async (req: Request, res: Response) => {
     });
 
     // Create stock entry record
-    await prisma.stockEntry.create({
+    await prisma.stockRecord.create({
       data: {
         productId,
         changeInStock: -quantity,
-        // TODO: fix it
-        // updatedBy: req.user?.id || "system", // Assuming user info is available in req.user
-        updatedBy: "system",
+        createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+        stockId: "default", // TODO: Replace with actual stock ID
+        reason: "DELIVERED_TO_CUSTOMER",
       },
     });
 
@@ -262,13 +262,13 @@ export const updateOrderItem = async (req: Request, res: Response) => {
       });
 
       // Create stock entry record
-      await prisma.stockEntry.create({
+      await prisma.stockRecord.create({
         data: {
           productId: existingOrderItem.productId,
           changeInStock: -quantityDifference,
-          // TODO: fix it
-          // updatedBy: req.user?.id || "system",
-          updatedBy: "system",
+          createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+          stockId: "default", // TODO: Replace with actual stock ID
+          reason: "DELIVERED_TO_CUSTOMER",
         },
       });
     }
@@ -326,13 +326,13 @@ export const deleteOrderItem = async (req: Request, res: Response) => {
     });
 
     // Create stock entry record
-    await prisma.stockEntry.create({
+    await prisma.stockRecord.create({
       data: {
         productId: existingOrderItem.productId,
         changeInStock: existingOrderItem.quantity,
-        // TODO: fix it
-        // updatedBy: req.user?.id || "system",
-        updatedBy: "system",
+        createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+        stockId: "default", // TODO: Replace with actual stock ID
+        reason: "CORRECTION_BY_ADMIN",
       },
     });
 

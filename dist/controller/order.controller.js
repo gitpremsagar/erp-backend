@@ -97,15 +97,8 @@ const createOrder = async (req, res) => {
                         deliveryDate: new Date(),
                     },
                 });
-                // Update product stock
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity,
-                        },
-                    },
-                });
+                // Note: Stock management is now handled through Stock and StockRecord models
+                // Product stock updates should be managed through the stock management system
             }
             return newOrder;
         });
@@ -431,17 +424,8 @@ const deleteOrder = async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
-        // Restore product stock
-        for (const item of order.OrderItem) {
-            await prisma.product.update({
-                where: { id: item.productId },
-                data: {
-                    stock: {
-                        increment: item.quantity,
-                    },
-                },
-            });
-        }
+        // Note: Stock restoration should be handled through the stock management system
+        // using StockRecord with appropriate reason (e.g., CORRECTION_BY_ADMIN)
         // Delete order items and order
         await prisma.$transaction(async (tx) => {
             await tx.orderItem.deleteMany({
