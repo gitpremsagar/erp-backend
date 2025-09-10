@@ -20,9 +20,9 @@ const router = express.Router();
 
 router.post("/sign-up", validateSignupForm, signup);
 
-router.post("/sign-in", validateSigninForm, signin);
+router.post("/log-in", validateSigninForm, signin);
 
-router.post("/sign-out", signout);
+router.post("/log-out", signout);
 
 router.post("/decode-access-token", validateAccessToken, decodeAccessToken);
 

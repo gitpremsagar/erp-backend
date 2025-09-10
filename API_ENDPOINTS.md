@@ -77,12 +77,13 @@ http://localhost:3008/api
 - `categoryId` (optional): Filter by category
 - `groupId` (optional): Filter by group
 - `subCategoryId` (optional): Filter by subcategory
+- `productTagIds` (optional): Filter by product tag(s). Can be a single tag ID or comma-separated multiple tag IDs
 - `minPrice` (optional): Minimum price filter
 - `maxPrice` (optional): Maximum price filter
 
 **Example:**
 ```
-GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000
+GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000&productTagIds=507f1f77bcf86cd799439015,507f1f77bcf86cd799439016
 ```
 
 **Response:**
@@ -419,6 +420,6 @@ curl -X POST http://localhost:3008/api/products \
 
 ### Searching Products
 ```bash
-curl -X GET "http://localhost:3008/api/products?search=laptop&minPrice=50000&maxPrice=200000&page=1&limit=10" \
+curl -X GET "http://localhost:3008/api/products?search=laptop&minPrice=50000&maxPrice=200000&productTagIds=TAG_ID1,TAG_ID2&page=1&limit=10" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```

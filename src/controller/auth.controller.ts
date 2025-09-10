@@ -10,15 +10,16 @@ import { AuthenticatedRequest } from "../middleware/auth.middleware";
 const prisma = new PrismaClient();
 
 export const signup = async (req: Request, res: Response) => {
-  const { 
-    email, 
-    password, 
-    name, 
-    phone, 
-    aadharNumber, 
-    pan, 
-    gstNumber, 
-    address 
+  const {
+    email,
+    password,
+    name,
+    phone,
+    aadharNumber,
+    pan,
+    gstNumber,
+    address,
+    userType
   } = req.body;
 
   //check if user already exists
@@ -46,19 +47,17 @@ export const signup = async (req: Request, res: Response) => {
         pan: pan || null,
         gstNumber: gstNumber || null,
         address: address || null,
-      },
-      include: {
-        privilege: true,
-      },
+        userType: userType || "CUSTOMER",
+      }
     });
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
     // Send response
-    res.status(201).json({ 
+    res.status(201).json({
       message: "User created successfully",
-      user: userWithoutPassword 
+      user: userWithoutPassword
     });
     return;
   } catch (error) {
@@ -69,13 +68,11 @@ export const signup = async (req: Request, res: Response) => {
 };
 
 export const signin = async (req: Request, res: Response) => {
+  // console.log("signin");
   const { email, password } = req.body;
-  
-  const user = await prisma.user.findUnique({ 
+
+  const user = await prisma.user.findUnique({
     where: { email },
-    include: {
-      privilege: true,
-    },
   });
   if (!user) {
     return res.status(404).json({ message: "Invalid email or password" });
@@ -88,17 +85,12 @@ export const signin = async (req: Request, res: Response) => {
 
   // Remove password from user data
   const { password: _, ...userWithoutPassword } = user;
-  
+
   const userData = {
     id: userWithoutPassword.id,
     email: userWithoutPassword.email,
     name: userWithoutPassword.name,
-    phone: userWithoutPassword.phone,
-    privilege: userWithoutPassword.privilege,
-    aadharNumber: userWithoutPassword.aadharNumber,
-    pan: userWithoutPassword.pan,
-    gstNumber: userWithoutPassword.gstNumber,
-    address: userWithoutPassword.address,
+    userType: userWithoutPassword.userType,
   };
 
   // Generate JWT tokens
@@ -113,45 +105,46 @@ export const signin = async (req: Request, res: Response) => {
     { expiresIn: +process.env.REFRESH_TOKEN_JWT_EXPIRY! }
   );
 
-  // send refresh token to client
+  // send refresh and access token to client
   res
-  .cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    sameSite: "none",
-    path: "/",
-  })
-  .cookie("accessToken", accessToken, {
-    maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY!,
-    path: "/",
-  })
-  .json({ accessToken, user: userData });
+    .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      sameSite: "lax",
+      path: "/",
+    })
+    .cookie("accessToken", accessToken, {
+      maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY!,
+      path: "/",
+    })
+    .json({ accessToken, user: userData });
   return;
 };
 
 export const signout = async (req: Request, res: Response) => {
   // remove refresh token cookie
+  // console.log("signout");
   res
-    .status(204)
+    .status(200)
     .cookie("refreshToken", "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       maxAge: 0,
-      sameSite: "none",
+      sameSite: "lax",
       path: "/",
     })
     .cookie("accessToken", "", {
       maxAge: 0,
       path: "/",
     })
-    .send();
+    .json({ success: true, message: "Logged out successfully" });
   return;
 };
 
 export const refreshAccessToken = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
-  
+
   if (!refreshToken) {
     console.log("Refreshing access token failed: Refresh token is missing");
     return res.status(401).json({ message: "Refresh token is missing" });
@@ -175,17 +168,12 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     // Remove password from user data
     const { password: _, ...userWithoutPassword } = user;
-    
+
     const userData = {
       id: userWithoutPassword.id,
       email: userWithoutPassword.email,
       name: userWithoutPassword.name,
-      phone: userWithoutPassword.phone,
-      privilege: userWithoutPassword.privilege,
-      aadharNumber: userWithoutPassword.aadharNumber,
-      pan: userWithoutPassword.pan,
-      gstNumber: userWithoutPassword.gstNumber,
-      address: userWithoutPassword.address,
+      userType: userWithoutPassword.userType,
     };
 
     // Generate new access token
@@ -195,11 +183,14 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY! }
     );
 
-    res.cookie("accessToken", accessToken, {
+    res
+    .status(200)
+    .cookie("accessToken", accessToken, {
       maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY!,
       path: "/",
     })
-    .send({ accessToken, user: userData });
+      .json({ accessToken, user: userData });
+    return;
   } catch (error: any) {
     if (
       error.name === "TokenExpiredError" ||
@@ -234,7 +225,7 @@ export const decodeAccessToken = async (
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
-    
+
     res.json({ user: userWithoutPassword });
   } catch (error) {
     console.error("Error decoding access token:\n", error);
@@ -248,7 +239,7 @@ export const getUserProfile = async (
 ) => {
   try {
     const userId = (req.user as any).id;
-    
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -262,7 +253,7 @@ export const getUserProfile = async (
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
-    
+
     res.json({ user: userWithoutPassword });
   } catch (error) {
     console.error("Error getting user profile:\n", error);
