@@ -11,7 +11,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma = new client_1.PrismaClient();
 const signup = async (req, res) => {
-    const { email, password, name, phone, aadharNumber, pan, gstNumber, address } = req.body;
+    const { email, password, name, phone, aadharNumber, pan, gstNumber, address, userType } = req.body;
     //check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -32,10 +32,8 @@ const signup = async (req, res) => {
                 pan: pan || null,
                 gstNumber: gstNumber || null,
                 address: address || null,
-            },
-            include: {
-                privilege: true,
-            },
+                userType: userType || "CUSTOMER",
+            }
         });
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
@@ -54,12 +52,10 @@ const signup = async (req, res) => {
 };
 exports.signup = signup;
 const signin = async (req, res) => {
+    // console.log("signin");
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({
         where: { email },
-        include: {
-            privilege: true,
-        },
     });
     if (!user) {
         return res.status(404).json({ message: "Invalid email or password" });
@@ -74,23 +70,18 @@ const signin = async (req, res) => {
         id: userWithoutPassword.id,
         email: userWithoutPassword.email,
         name: userWithoutPassword.name,
-        phone: userWithoutPassword.phone,
-        privilege: userWithoutPassword.privilege,
-        aadharNumber: userWithoutPassword.aadharNumber,
-        pan: userWithoutPassword.pan,
-        gstNumber: userWithoutPassword.gstNumber,
-        address: userWithoutPassword.address,
+        userType: userWithoutPassword.userType,
     };
     // Generate JWT tokens
     const accessToken = jsonwebtoken_1.default.sign({ ...userData }, process.env.ACCESS_TOKEN_JWT_SECRET, { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY });
     const refreshToken = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.REFRESH_TOKEN_JWT_SECRET, { expiresIn: +process.env.REFRESH_TOKEN_JWT_EXPIRY });
-    // send refresh token to client
+    // send refresh and access token to client
     res
         .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         maxAge: 1000 * 60 * 60 * 24 * 7,
-        sameSite: "none",
+        sameSite: "lax",
         path: "/",
     })
         .cookie("accessToken", accessToken, {
@@ -103,20 +94,21 @@ const signin = async (req, res) => {
 exports.signin = signin;
 const signout = async (req, res) => {
     // remove refresh token cookie
+    // console.log("signout");
     res
-        .status(204)
+        .status(200)
         .cookie("refreshToken", "", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
         maxAge: 0,
-        sameSite: "none",
+        sameSite: "lax",
         path: "/",
     })
         .cookie("accessToken", "", {
         maxAge: 0,
         path: "/",
     })
-        .send();
+        .json({ success: true, message: "Logged out successfully" });
     return;
 };
 exports.signout = signout;
@@ -143,20 +135,18 @@ const refreshAccessToken = async (req, res) => {
             id: userWithoutPassword.id,
             email: userWithoutPassword.email,
             name: userWithoutPassword.name,
-            phone: userWithoutPassword.phone,
-            privilege: userWithoutPassword.privilege,
-            aadharNumber: userWithoutPassword.aadharNumber,
-            pan: userWithoutPassword.pan,
-            gstNumber: userWithoutPassword.gstNumber,
-            address: userWithoutPassword.address,
+            userType: userWithoutPassword.userType,
         };
         // Generate new access token
         const accessToken = jsonwebtoken_1.default.sign({ ...userData }, process.env.ACCESS_TOKEN_JWT_SECRET, { expiresIn: +process.env.ACCESS_TOKEN_JWT_EXPIRY });
-        res.cookie("accessToken", accessToken, {
+        res
+            .status(200)
+            .cookie("accessToken", accessToken, {
             maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY,
             path: "/",
         })
-            .send({ accessToken, user: userData });
+            .json({ accessToken, user: userData });
+        return;
     }
     catch (error) {
         if (error.name === "TokenExpiredError" ||

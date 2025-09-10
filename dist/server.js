@@ -18,6 +18,7 @@ const orderItem_route_1 = __importDefault(require("./route/orderItem.route"));
 const customer_route_1 = __importDefault(require("./route/customer.route"));
 const deliveryAddress_route_1 = __importDefault(require("./route/deliveryAddress.route"));
 const userPrivilege_route_1 = __importDefault(require("./route/userPrivilege.route"));
+const productTag_route_1 = __importDefault(require("./route/productTag.route"));
 const app = (0, express_1.default)();
 // allow all origins
 app.use((0, cors_1.default)({
@@ -30,7 +31,7 @@ app.use((0, cors_1.default)({
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.get("/", (req, res) => {
-    res.send("Hello World! Edited");
+    res.send("Hello World! Test from desktop!");
 });
 // endpoints
 app.use("/api/auth", auth_route_1.default);
@@ -44,6 +45,7 @@ app.use("/api/orders", order_route_1.default);
 app.use("/api/order-items", orderItem_route_1.default);
 app.use("/api/customers", customer_route_1.default);
 app.use("/api/delivery-addresses", deliveryAddress_route_1.default);
+app.use("/api/product-tags", productTag_route_1.default);
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

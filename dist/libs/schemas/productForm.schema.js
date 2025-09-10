@@ -22,17 +22,6 @@ exports.CreateProductSchema = zod_1.z.object({
         .min(1, "Description is required")
         .max(1000, "Description must be at most 1000 characters long")
         .trim(),
-    expiryDate: zod_1.z.string().datetime("Invalid expiry date format"),
-    validity: zod_1.z
-        .string()
-        .min(1, "Validity is required")
-        .max(100, "Validity must be at most 100 characters long")
-        .trim(),
-    stock: zod_1.z
-        .number()
-        .int("Stock must be an integer")
-        .min(0, "Stock cannot be negative"),
-    stockEntryDate: zod_1.z.string().datetime("Invalid stock entry date format"),
     lowStockLimit: zod_1.z
         .number()
         .int("Low stock limit must be an integer")
@@ -43,56 +32,10 @@ exports.CreateProductSchema = zod_1.z.object({
         .int("Over stock limit must be an integer")
         .min(0, "Over stock limit cannot be negative")
         .optional(),
-    lowStockAlertColor: zod_1.z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-        .optional(),
-    lowStockAlertMessage: zod_1.z
-        .string()
-        .max(100, "Low stock alert message must be at most 100 characters long")
-        .optional(),
-    overStockAlertColor: zod_1.z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-        .optional(),
-    overStockAlertMessage: zod_1.z
-        .string()
-        .max(100, "Over stock alert message must be at most 100 characters long")
-        .optional(),
-    inStockAlertColor: zod_1.z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-        .optional(),
-    inStockAlertMessage: zod_1.z
-        .string()
-        .max(100, "In stock alert message must be at most 100 characters long")
-        .optional(),
-    expiryAlertDays: zod_1.z
-        .number()
-        .int("Expiry alert days must be an integer")
-        .min(0, "Expiry alert days cannot be negative")
-        .optional(),
-    expiryAlertColor: zod_1.z
-        .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format. Use hex color code (e.g., #FF0000)")
-        .optional(),
-    expiryAlertMessage: zod_1.z
-        .string()
-        .max(100, "Expiry alert message must be at most 100 characters long")
-        .optional(),
-    tags: zod_1.z.array(zod_1.z.string().trim()).optional(),
-    imageUrl: zod_1.z
-        .string()
-        .url("Invalid image URL format")
-        .trim(),
     categoryId: zod_1.z
         .string()
         .min(24, "Invalid category ID")
         .max(24, "Invalid category ID"),
-    groupId: zod_1.z
-        .string()
-        .min(24, "Invalid group ID")
-        .max(24, "Invalid group ID"),
     subCategoryId: zod_1.z
         .string()
         .min(24, "Invalid sub-category ID")
@@ -100,7 +43,47 @@ exports.CreateProductSchema = zod_1.z.object({
     grammage: zod_1.z
         .number()
         .int("Grammage must be an integer")
-        .positive("Grammage must be a positive number"),
+        .positive("Grammage must be a positive number")
+        .optional(),
+    imageUrl: zod_1.z
+        .string()
+        .url("Invalid image URL format")
+        .trim()
+        .optional(),
+    tags: zod_1.z.array(zod_1.z.string().trim()).optional(),
+    // Stock related fields (optional for product creation)
+    stockId: zod_1.z
+        .string()
+        .min(1, "Stock ID is required if creating stock")
+        .optional(),
+    manufacturingDate: zod_1.z
+        .string()
+        .datetime("Invalid manufacturing date format")
+        .optional(),
+    arrivalDate: zod_1.z
+        .string()
+        .datetime("Invalid arrival date format")
+        .optional(),
+    validityMonths: zod_1.z
+        .number()
+        .int("Validity months must be an integer")
+        .min(1, "Validity months must be at least 1")
+        .optional(),
+    supplierName: zod_1.z
+        .string()
+        .max(200, "Supplier name must be at most 200 characters long")
+        .trim()
+        .optional(),
+    supplierId: zod_1.z
+        .string()
+        .min(24, "Invalid supplier ID")
+        .max(24, "Invalid supplier ID")
+        .optional(),
+    stockQuantity: zod_1.z
+        .number()
+        .int("Stock quantity must be an integer")
+        .min(0, "Stock quantity cannot be negative")
+        .optional(),
 });
 exports.UpdateProductSchema = exports.CreateProductSchema.partial();
 exports.ProductQuerySchema = zod_1.z.object({
@@ -108,7 +91,6 @@ exports.ProductQuerySchema = zod_1.z.object({
     limit: zod_1.z.string().optional().transform(val => val ? parseInt(val) : 10),
     search: zod_1.z.string().optional(),
     categoryId: zod_1.z.string().optional(),
-    groupId: zod_1.z.string().optional(),
     subCategoryId: zod_1.z.string().optional(),
     minPrice: zod_1.z.string().optional().transform(val => val ? parseInt(val) : undefined),
     maxPrice: zod_1.z.string().optional().transform(val => val ? parseInt(val) : undefined),
