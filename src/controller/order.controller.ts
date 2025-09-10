@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice } = req.body;
+    const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
 
     // Check if customer exists
     const customer = await prisma.user.findUnique({
@@ -34,6 +34,26 @@ export const createOrder = async (req: Request, res: Response) => {
       });
       if (!deliveryAddress) {
         return res.status(404).json({ message: "Delivery address not found" });
+      }
+    }
+
+    // Check if original order exists if provided
+    if (originalOrderId) {
+      const originalOrder = await prisma.order.findUnique({
+        where: { id: originalOrderId },
+      });
+      if (!originalOrder) {
+        return res.status(404).json({ message: "Original order not found" });
+      }
+    }
+
+    // Check if stock record exists if provided
+    if (stockRecordId) {
+      const stockRecord = await prisma.stockRecord.findUnique({
+        where: { id: stockRecordId },
+      });
+      if (!stockRecord) {
+        return res.status(404).json({ message: "Stock record not found" });
       }
     }
 
@@ -66,11 +86,14 @@ export const createOrder = async (req: Request, res: Response) => {
           vehicleId,
           deliveryAddressId,
           totalPrice: totalPrice || 0,
+          originalOrderId,
+          stockRecordId,
         },
         include: {
           customer: true,
           vehicle: true,
           deliveryAddress: true,
+          stockRecord: true,
         },
       });
 
@@ -86,15 +109,8 @@ export const createOrder = async (req: Request, res: Response) => {
           },
         });
 
-        // Update product stock
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity,
-            },
-          },
-        });
+        // Note: Stock management is now handled through Stock and StockRecord models
+        // Product stock updates should be managed through the stock management system
       }
 
       return newOrder;
@@ -107,6 +123,7 @@ export const createOrder = async (req: Request, res: Response) => {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
+        stockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -167,6 +184,7 @@ export const getOrders = async (req: Request, res: Response) => {
           customer: true,
           vehicle: true,
           deliveryAddress: true,
+          stockRecord: true,
           OrderItem: {
             include: {
               Product: true,
@@ -236,6 +254,7 @@ export const getOrderById = async (req: Request, res: Response) => {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
+        stockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -256,11 +275,92 @@ export const getOrderById = async (req: Request, res: Response) => {
   }
 };
 
+// Get a single order by custom order ID
+export const getOrderByCustomOrderId = async (req: Request, res: Response) => {
+  try {
+    const { customOrderId } = req.params;
+
+    const order = await prisma.order.findUnique({
+      where: { customeOrderId: customOrderId },
+      include: {
+        customer: true,
+        vehicle: true,
+        deliveryAddress: true,
+        stockRecord: true,
+        OrderItem: {
+          include: {
+            Product: true,
+            Customer: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({ order });
+  } catch (error) {
+    console.error("Error fetching order by custom order ID:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get orders by original order ID (for tracking order modifications)
+export const getOrdersByOriginalOrderId = async (req: Request, res: Response) => {
+  try {
+    const { originalOrderId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where: { originalOrderId },
+        skip,
+        take: Number(limit),
+        include: {
+          customer: true,
+          vehicle: true,
+          deliveryAddress: true,
+          stockRecord: true,
+          OrderItem: {
+            include: {
+              Product: true,
+              Customer: true,
+            },
+          },
+        },
+        orderBy: {
+          orderDate: "desc",
+        },
+      }),
+      prisma.order.count({ where: { originalOrderId } }),
+    ]);
+
+    const totalPages = Math.ceil(total / Number(limit));
+
+    res.json({
+      orders,
+      pagination: {
+        currentPage: Number(page),
+        totalPages,
+        totalItems: total,
+        itemsPerPage: Number(limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching orders by original order ID:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // Update an order
 export const updateOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId } = req.body;
+    const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
 
     // Check if order exists
     const existingOrder = await prisma.order.findUnique({
@@ -301,6 +401,26 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
+    // Check if original order exists if updating originalOrderId
+    if (originalOrderId) {
+      const originalOrder = await prisma.order.findUnique({
+        where: { id: originalOrderId },
+      });
+      if (!originalOrder) {
+        return res.status(404).json({ message: "Original order not found" });
+      }
+    }
+
+    // Check if stock record exists if updating stockRecordId
+    if (stockRecordId) {
+      const stockRecord = await prisma.stockRecord.findUnique({
+        where: { id: stockRecordId },
+      });
+      if (!stockRecord) {
+        return res.status(404).json({ message: "Stock record not found" });
+      }
+    }
+
     // Update the order
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
@@ -311,11 +431,13 @@ export const updateOrder = async (req: Request, res: Response) => {
         deliveryAddressId,
         totalPrice,
         originalOrderId,
+        stockRecordId,
       },
       include: {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
+        stockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -349,17 +471,8 @@ export const deleteOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Restore product stock
-    for (const item of order.OrderItem) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: {
-          stock: {
-            increment: item.quantity,
-          },
-        },
-      });
-    }
+    // Note: Stock restoration should be handled through the stock management system
+    // using StockRecord with appropriate reason (e.g., CORRECTION_BY_ADMIN)
 
     // Delete order items and order
     await prisma.$transaction(async (tx) => {

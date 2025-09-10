@@ -50,7 +50,6 @@ const createOrderItem = async (req, res) => {
                 Product: {
                     include: {
                         Category: true,
-                        Group: true,
                         SubCategory: true,
                     },
                 },
@@ -117,7 +116,6 @@ const getOrderItems = async (req, res) => {
                     Product: {
                         include: {
                             Category: true,
-                            Group: true,
                             SubCategory: true,
                         },
                     },
@@ -157,7 +155,6 @@ const getProducOrderHistory = async (req, res) => {
                 Product: {
                     include: {
                         Category: true,
-                        Group: true,
                         SubCategory: true,
                     },
                 },
@@ -249,7 +246,6 @@ const updateOrderItem = async (req, res) => {
                 Product: {
                     include: {
                         Category: true,
-                        Group: true,
                         SubCategory: true,
                     },
                 },

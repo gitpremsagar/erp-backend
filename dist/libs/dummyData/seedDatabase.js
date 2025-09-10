@@ -149,7 +149,7 @@ const seedDatabase = async () => {
                 console.log(`❌ Required references not found for product: ${product.name}`);
                 console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
                 console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
-                console.log(`   Note: groupName '${product.groupName}' is ignored (Group model removed)`);
+                console.log(`   Note: groupName is ignored (Group model removed)`);
                 continue;
             }
             const existingProduct = await prisma.product.findUnique({
@@ -233,7 +233,7 @@ const seedDatabase = async () => {
                         });
                     }
                 }
-                console.log(`✅ Created product: ${product.name} (${product.productCode}) - Group: ${product.groupName || 'N/A'} (ignored)`);
+                console.log(`✅ Created product: ${product.name} (${product.productCode})`);
             }
             else {
                 console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);

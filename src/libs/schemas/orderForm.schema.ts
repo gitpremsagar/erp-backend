@@ -20,6 +20,16 @@ export const CreateOrderSchema = z.object({
     .min(24, "Invalid delivery address ID")
     .max(24, "Invalid delivery address ID")
     .optional(),
+  originalOrderId: z
+    .string()
+    .min(24, "Invalid original order ID")
+    .max(24, "Invalid original order ID")
+    .optional(),
+  stockRecordId: z
+    .string()
+    .min(24, "Invalid stock record ID")
+    .max(24, "Invalid stock record ID")
+    .optional(),
   orderItems: z.array(z.object({
     productId: z
       .string()
@@ -58,6 +68,11 @@ export const UpdateOrderSchema = z.object({
     .string()
     .min(24, "Invalid original order ID")
     .max(24, "Invalid original order ID")
+    .optional(),
+  stockRecordId: z
+    .string()
+    .min(24, "Invalid stock record ID")
+    .max(24, "Invalid stock record ID")
     .optional(),
   orderItems: z.array(z.object({
     productId: z

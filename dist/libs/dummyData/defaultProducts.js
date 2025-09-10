@@ -18,7 +18,6 @@ exports.defaultProducts = [
         tags: ["namkeen", "moong dal", "traditional", "crunchy"],
         imageUrl: "https://example.com/images/moong-dal-namkeen.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Moong Dal Namkeen"
     },
     {
@@ -36,7 +35,6 @@ exports.defaultProducts = [
         tags: ["namkeen", "moong dal", "premium", "spicy"],
         imageUrl: "https://example.com/images/premium-moong-dal-namkeen.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Moong Dal Namkeen"
     },
     // Snacks & Namkeen - Aloo Bhujia
@@ -55,7 +53,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "potato", "traditional", "spicy"],
         imageUrl: "https://example.com/images/aloo-bhujia.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Aloo Bhujia"
     },
     // Snacks & Namkeen - Bhujia
@@ -74,7 +71,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "traditional", "spicy", "gram flour"],
         imageUrl: "https://example.com/images/bhujia.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Chana Products
@@ -93,7 +89,6 @@ exports.defaultProducts = [
         tags: ["chana", "roasted", "spicy", "traditional"],
         imageUrl: "https://example.com/images/chana-jor-garam.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -111,7 +106,6 @@ exports.defaultProducts = [
         tags: ["chana", "nuts", "premium", "crunchy"],
         imageUrl: "https://example.com/images/chana-nuts.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Chatpata Products
@@ -130,7 +124,6 @@ exports.defaultProducts = [
         tags: ["chatpata", "dal", "spicy", "tangy"],
         imageUrl: "https://example.com/images/chatpata-dal.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -148,7 +141,6 @@ exports.defaultProducts = [
         tags: ["chatpata", "matar", "green peas", "spicy"],
         imageUrl: "https://example.com/images/chatpata-matar.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Falahari & Gathiya
@@ -167,7 +159,6 @@ exports.defaultProducts = [
         tags: ["falahari", "chiwda", "fasting", "traditional"],
         imageUrl: "https://example.com/images/falahari-chiwda.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -185,7 +176,6 @@ exports.defaultProducts = [
         tags: ["gathiya", "crispy", "traditional", "snack"],
         imageUrl: "https://example.com/images/gathiya.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Khatta Meetha & Lite
@@ -204,7 +194,6 @@ exports.defaultProducts = [
         tags: ["khatta meetha", "sweet", "sour", "traditional"],
         imageUrl: "https://example.com/images/khatta-meetha.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Khatta Meetha"
     },
     {
@@ -222,7 +211,6 @@ exports.defaultProducts = [
         tags: ["lite", "chiwda", "light", "crispy"],
         imageUrl: "https://example.com/images/lite-chiwda.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Mixture & More
@@ -241,7 +229,6 @@ exports.defaultProducts = [
         tags: ["mixture", "classic", "blend", "traditional"],
         imageUrl: "https://example.com/images/mixture.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -259,7 +246,6 @@ exports.defaultProducts = [
         tags: ["moong dal", "premium", "extended shelf life"],
         imageUrl: "https://example.com/images/moong-dal-premium.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Moong Dal Namkeen"
     },
     // Snacks & Namkeen - Nutty & Papdi
@@ -278,7 +264,6 @@ exports.defaultProducts = [
         tags: ["nutty", "mix", "crunchy", "traditional"],
         imageUrl: "https://example.com/images/nutty-craze.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -296,7 +281,6 @@ exports.defaultProducts = [
         tags: ["papdi", "gathiya", "crispy", "traditional"],
         imageUrl: "https://example.com/images/papdi-gathiya.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Punjabi & More
@@ -315,7 +299,6 @@ exports.defaultProducts = [
         tags: ["punjabi", "tadka", "authentic", "spices"],
         imageUrl: "https://example.com/images/punjabi-tadka.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -333,7 +316,6 @@ exports.defaultProducts = [
         tags: ["ratlami", "sev", "traditional", "authentic"],
         imageUrl: "https://example.com/images/ratlami-sev.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Roasted & Salted
@@ -352,7 +334,6 @@ exports.defaultProducts = [
         tags: ["roasted", "chana", "premium", "crunchy"],
         imageUrl: "https://example.com/images/roasted-chana.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -370,7 +351,6 @@ exports.defaultProducts = [
         tags: ["salted", "peanut", "traditional", "snack"],
         imageUrl: "https://example.com/images/salted-peanut.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Sev & Soya
@@ -389,7 +369,6 @@ exports.defaultProducts = [
         tags: ["sev", "murmura", "traditional", "texture"],
         imageUrl: "https://example.com/images/sev-murmura.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -407,7 +386,6 @@ exports.defaultProducts = [
         tags: ["soya", "chips", "healthy", "health-conscious"],
         imageUrl: "https://example.com/images/soya-chips.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Chips & Crisps"
     },
     // Snacks & Namkeen - Soya & Tasty
@@ -426,7 +404,6 @@ exports.defaultProducts = [
         tags: ["soya", "sticks", "crispy", "crunchy"],
         imageUrl: "https://example.com/images/soya-sticks.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Chips & Crisps"
     },
     {
@@ -444,7 +421,6 @@ exports.defaultProducts = [
         tags: ["tasty", "nuts", "premium", "blend"],
         imageUrl: "https://example.com/images/tasty-nuts.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - 10 Rupee Variants
@@ -463,7 +439,6 @@ exports.defaultProducts = [
         tags: ["all in one", "premium", "mix", "36gm"],
         imageUrl: "https://example.com/images/all-in-one-36gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -481,7 +456,6 @@ exports.defaultProducts = [
         tags: ["aloo bhujia", "premium", "42gm", "potato"],
         imageUrl: "https://example.com/images/aloo-bhujia-42gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Aloo Bhujia"
     },
     // Snacks & Namkeen - More 10 Rupee Variants
@@ -500,7 +474,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "premium", "35gm", "traditional"],
         imageUrl: "https://example.com/images/bhujia-35gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -518,7 +491,6 @@ exports.defaultProducts = [
         tags: ["instant", "bhel", "ready to eat", "44gm"],
         imageUrl: "https://example.com/images/instant-bhel.jpg",
         categoryName: "Ready to Eat",
-        groupName: "Standard",
         subCategoryName: "Snack Mixes"
     },
     // Sweets & Desserts - Gulab Jamun & Rasgulla
@@ -537,7 +509,6 @@ exports.defaultProducts = [
         tags: ["gulab jamun", "sweet", "spongy", "sugar syrup"],
         imageUrl: "https://example.com/images/gulab-jamun-500gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Standard",
         subCategoryName: "Gulab Jamun"
     },
     {
@@ -555,7 +526,6 @@ exports.defaultProducts = [
         tags: ["gulab jamun", "1kg", "premium", "box folding"],
         imageUrl: "https://example.com/images/gulab-jamun-1kg.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Gulab Jamun"
     },
     // Sweets & Desserts - Rasgulla
@@ -574,7 +544,6 @@ exports.defaultProducts = [
         tags: ["rasgulla", "cottage cheese", "soft", "sugar syrup"],
         imageUrl: "https://example.com/images/rasgulla-500gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Standard",
         subCategoryName: "Rasgullas"
     },
     {
@@ -592,7 +561,6 @@ exports.defaultProducts = [
         tags: ["rasgulla", "1kg", "premium", "box folding"],
         imageUrl: "https://example.com/images/rasgulla-1kg.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Rasgullas"
     },
     // Sweets & Desserts - Soan Papdi
@@ -611,7 +579,6 @@ exports.defaultProducts = [
         tags: ["soan papdi", "regular", "flaky", "traditional"],
         imageUrl: "https://example.com/images/soan-papdi-100gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Standard",
         subCategoryName: "Barfis"
     },
     {
@@ -629,7 +596,6 @@ exports.defaultProducts = [
         tags: ["soan papdi", "250gm", "premium", "flaky"],
         imageUrl: "https://example.com/images/soan-papdi-250gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     // Beverages - Fruit Drinks
@@ -648,7 +614,6 @@ exports.defaultProducts = [
         tags: ["mango", "drink", "refreshing", "125ml"],
         imageUrl: "https://example.com/images/mango-drink.jpg",
         categoryName: "Beverages",
-        groupName: "Standard",
         subCategoryName: "Fruit Juices"
     },
     {
@@ -666,7 +631,6 @@ exports.defaultProducts = [
         tags: ["litchi", "drink", "delicious", "125ml"],
         imageUrl: "https://example.com/images/litchi-drink.jpg",
         categoryName: "Beverages",
-        groupName: "Standard",
         subCategoryName: "Fruit Juices"
     },
     // Beverages - More Drinks
@@ -685,7 +649,6 @@ exports.defaultProducts = [
         tags: ["matka jhatka", "masala chaas", "spicy", "buttermilk"],
         imageUrl: "https://example.com/images/matka-jhatka.jpg",
         categoryName: "Beverages",
-        groupName: "Standard",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -703,7 +666,6 @@ exports.defaultProducts = [
         tags: ["classic", "lassi", "sweet", "traditional"],
         imageUrl: "https://example.com/images/classic-lassi.jpg",
         categoryName: "Beverages",
-        groupName: "Standard",
         subCategoryName: "Lassi & Shakes"
     },
     // Snacks & Namkeen - Chips & More
@@ -722,7 +684,6 @@ exports.defaultProducts = [
         tags: ["panga", "tangy tomato", "chips", "crunchy"],
         imageUrl: "https://example.com/images/panga-tangy-tomato.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Chips & Crisps"
     },
     {
@@ -740,7 +701,6 @@ exports.defaultProducts = [
         tags: ["panga", "teekha achari", "spicy", "traditional"],
         imageUrl: "https://example.com/images/panga-teekha-achari.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Chips & Crisps"
     },
     // Snacks & Namkeen - Halke Fulke & Popcorn
@@ -759,7 +719,6 @@ exports.defaultProducts = [
         tags: ["halke fulke", "light", "crispy", "traditional"],
         imageUrl: "https://example.com/images/halke-fulke-5.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -777,7 +736,6 @@ exports.defaultProducts = [
         tags: ["halke fulke", "premium", "light", "crispy"],
         imageUrl: "https://example.com/images/halke-fulke-10.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Popcorn
@@ -796,7 +754,6 @@ exports.defaultProducts = [
         tags: ["popcorn", "salted", "traditional", "crunchy"],
         imageUrl: "https://example.com/images/popcorn-salted.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Chips & Crisps"
     },
     // Snacks & Namkeen - 200gm & 400gm Variants
@@ -815,7 +772,6 @@ exports.defaultProducts = [
         tags: ["aloo bhujia", "200gm", "premium", "potato"],
         imageUrl: "https://example.com/images/aloo-bhujia-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Aloo Bhujia"
     },
     {
@@ -833,7 +789,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bhujia-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - 400gm & 1kg Variants
@@ -852,7 +807,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "400gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bhujia-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -870,7 +824,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "1kg", "premium", "traditional"],
         imageUrl: "https://example.com/images/bhujia-1kg.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - More Variants
@@ -889,7 +842,6 @@ exports.defaultProducts = [
         tags: ["khatta meetha", "200gm", "premium", "sweet sour"],
         imageUrl: "https://example.com/images/khatta-meetha-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Khatta Meetha"
     },
     {
@@ -907,7 +859,6 @@ exports.defaultProducts = [
         tags: ["lite chiwda", "200gm", "premium", "light"],
         imageUrl: "https://example.com/images/lite-chiwda-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Mixture & Moong Dal Variants
@@ -926,7 +877,6 @@ exports.defaultProducts = [
         tags: ["mixture", "200gm", "premium", "blend"],
         imageUrl: "https://example.com/images/mixture-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -944,7 +894,6 @@ exports.defaultProducts = [
         tags: ["moong dal", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/moong-dal-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Moong Dal Namkeen"
     },
     // Snacks & Namkeen - 400gm Variants
@@ -963,7 +912,6 @@ exports.defaultProducts = [
         tags: ["mixture", "400gm", "premium", "blend"],
         imageUrl: "https://example.com/images/mixture-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -981,7 +929,6 @@ exports.defaultProducts = [
         tags: ["moong dal", "400gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/moong-dal-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Moong Dal Namkeen"
     },
     // Snacks & Namkeen - Other Variants
@@ -1000,7 +947,6 @@ exports.defaultProducts = [
         tags: ["punjabi tadka", "200gm", "premium", "authentic"],
         imageUrl: "https://example.com/images/punjabi-tadka-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1018,7 +964,6 @@ exports.defaultProducts = [
         tags: ["tasty nuts", "200gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/tasty-nuts-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Variants
@@ -1037,7 +982,6 @@ exports.defaultProducts = [
         tags: ["tasty nuts", "400gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/tasty-nuts-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1055,7 +999,6 @@ exports.defaultProducts = [
         tags: ["salted peanut", "200gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/salted-peanut-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Additional Variants
@@ -1074,7 +1017,6 @@ exports.defaultProducts = [
         tags: ["soya sticks", "200gm", "premium", "healthy"],
         imageUrl: "https://example.com/images/soya-sticks-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Chips & Crisps"
     },
     {
@@ -1092,7 +1034,6 @@ exports.defaultProducts = [
         tags: ["mini bhakharwadi", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-bhakharwadi-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Variants
@@ -1111,7 +1052,6 @@ exports.defaultProducts = [
         tags: ["mini punjabi papad", "25gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-punjabi-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1129,7 +1069,6 @@ exports.defaultProducts = [
         tags: ["panchrattan", "25gm", "premium", "mix"],
         imageUrl: "https://example.com/images/panchrattan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Last Additional Variants
@@ -1148,7 +1087,6 @@ exports.defaultProducts = [
         tags: ["papad chavanu", "45gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/papad-chavanu.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1166,7 +1104,6 @@ exports.defaultProducts = [
         tags: ["roasted chana", "42gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/roasted-chana-42gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1185,7 +1122,6 @@ exports.defaultProducts = [
         tags: ["roasted crushed peanut", "35gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/roasted-crushed-peanut.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1203,7 +1139,6 @@ exports.defaultProducts = [
         tags: ["salted peanut", "34gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/salted-peanut-34gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Last Products
@@ -1222,7 +1157,6 @@ exports.defaultProducts = [
         tags: ["soya chips", "45gm", "premium", "healthy"],
         imageUrl: "https://example.com/images/soya-chips-45gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Chips & Crisps"
     },
     {
@@ -1240,7 +1174,6 @@ exports.defaultProducts = [
         tags: ["soya sticks", "42gm", "premium", "healthy"],
         imageUrl: "https://example.com/images/soya-sticks-42gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Chips & Crisps"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1259,7 +1192,6 @@ exports.defaultProducts = [
         tags: ["tasty nuts", "38gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/tasty-nuts-38gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1277,7 +1209,6 @@ exports.defaultProducts = [
         tags: ["teekha meetha", "22gm", "premium", "spicy sweet"],
         imageUrl: "https://example.com/images/teekha-meetha.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Khatta Meetha"
     },
     // Snacks & Namkeen - Final Products
@@ -1296,7 +1227,6 @@ exports.defaultProducts = [
         tags: ["all in one", "200gm", "premium", "mix"],
         imageUrl: "https://example.com/images/all-in-one-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1314,7 +1244,6 @@ exports.defaultProducts = [
         tags: ["all in one", "400gm", "premium", "mix"],
         imageUrl: "https://example.com/images/all-in-one-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1333,7 +1262,6 @@ exports.defaultProducts = [
         tags: ["aloo bhujia", "400gm", "premium", "potato"],
         imageUrl: "https://example.com/images/aloo-bhujia-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Aloo Bhujia"
     },
     {
@@ -1351,7 +1279,6 @@ exports.defaultProducts = [
         tags: ["bhujia", "600gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bhujia-600gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1370,7 +1297,6 @@ exports.defaultProducts = [
         tags: ["khatta meetha", "400gm", "premium", "sweet sour"],
         imageUrl: "https://example.com/images/khatta-meetha-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Khatta Meetha"
     },
     {
@@ -1388,7 +1314,6 @@ exports.defaultProducts = [
         tags: ["lite chiwda", "400gm", "premium", "light"],
         imageUrl: "https://example.com/images/lite-chiwda-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1407,7 +1332,6 @@ exports.defaultProducts = [
         tags: ["mini bhakharwadi", "400gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-bhakharwadi-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1425,7 +1349,6 @@ exports.defaultProducts = [
         tags: ["mini bhakharwadi", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-bhakharwadi-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1444,7 +1367,6 @@ exports.defaultProducts = [
         tags: ["mini samosa", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-samosa-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1462,7 +1384,6 @@ exports.defaultProducts = [
         tags: ["murukku", "chakoli", "200gm", "premium"],
         imageUrl: "https://example.com/images/murukku-chakoli.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1481,7 +1402,6 @@ exports.defaultProducts = [
         tags: ["mathri", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mathri-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1499,7 +1419,6 @@ exports.defaultProducts = [
         tags: ["gol kachauri", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/gol-kachauri-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1518,7 +1437,6 @@ exports.defaultProducts = [
         tags: ["bread toast", "classic", "70gm", "traditional"],
         imageUrl: "https://example.com/images/bread-toast-classic.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1536,7 +1454,6 @@ exports.defaultProducts = [
         tags: ["milk bread toast", "250gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/milk-bread-toast-250gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1555,7 +1472,6 @@ exports.defaultProducts = [
         tags: ["cream cone", "vanilla", "30gm", "ice cream"],
         imageUrl: "https://example.com/images/cream-cone-vanilla.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Standard",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1573,7 +1489,6 @@ exports.defaultProducts = [
         tags: ["instant noodles", "woka", "52gm", "ready to eat"],
         imageUrl: "https://example.com/images/woka-instant-noodles.jpg",
         categoryName: "Ready to Eat",
-        groupName: "Standard",
         subCategoryName: "Snack Mixes"
     },
     // Snacks & Namkeen - Final Products
@@ -1592,7 +1507,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "90gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-90gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1610,7 +1524,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "900gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-900gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1629,7 +1542,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "32gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1647,7 +1559,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1666,7 +1577,6 @@ exports.defaultProducts = [
         tags: ["punjabi medium papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/punjabi-medium-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1684,7 +1594,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "sneh bandhan", "400gm", "premium"],
         imageUrl: "https://example.com/images/gp-sneh-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1703,7 +1612,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "madhur rishtey", "600gm", "premium"],
         imageUrl: "https://example.com/images/gp-madhur-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1721,7 +1629,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "atoot rishtey", "720gm", "premium"],
         imageUrl: "https://example.com/images/gp-atoot-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1740,7 +1647,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "anmol bandhan", "950gm", "premium"],
         imageUrl: "https://example.com/images/gp-anmol-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1758,7 +1664,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-200gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1777,7 +1682,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "350gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-350gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     {
@@ -1795,7 +1699,6 @@ exports.defaultProducts = [
         tags: ["roasted salted cashew", "35gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/roasted-salted-cashew.jpg",
         categoryName: "Dry Fruits & Nuts",
-        groupName: "Premium",
         subCategoryName: "Premium Nuts"
     },
     // Snacks & Namkeen - Final Products
@@ -1814,7 +1717,6 @@ exports.defaultProducts = [
         tags: ["mini samosa", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-samosa-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1832,7 +1734,6 @@ exports.defaultProducts = [
         tags: ["keshar milk", "180ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/keshar-milk.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1851,7 +1752,6 @@ exports.defaultProducts = [
         tags: ["lemon squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/lemon-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -1869,7 +1769,6 @@ exports.defaultProducts = [
         tags: ["orange squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/orange-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Products
@@ -1888,7 +1787,6 @@ exports.defaultProducts = [
         tags: ["rose squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/rose-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -1906,7 +1804,6 @@ exports.defaultProducts = [
         tags: ["pineapple squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/pineapple-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1925,7 +1822,6 @@ exports.defaultProducts = [
         tags: ["pasta", "macroni", "elbow", "5kg"],
         imageUrl: "https://example.com/images/pasta-macroni-elbow.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1943,7 +1839,6 @@ exports.defaultProducts = [
         tags: ["pellets", "trikona", "5kg", "premium"],
         imageUrl: "https://example.com/images/pellets-trikona.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -1962,7 +1857,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "400gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -1980,7 +1874,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "900gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-900gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -1999,7 +1892,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "32gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2017,7 +1909,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2036,7 +1927,6 @@ exports.defaultProducts = [
         tags: ["punjabi medium papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/punjabi-medium-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2054,7 +1944,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "sneh bandhan", "400gm", "premium"],
         imageUrl: "https://example.com/images/gp-sneh-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2073,7 +1962,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "madhur rishtey", "600gm", "premium"],
         imageUrl: "https://example.com/images/gp-madhur-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2091,7 +1979,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "atoot rishtey", "720gm", "premium"],
         imageUrl: "https://example.com/images/gp-atoot-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2110,7 +1997,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "anmol bandhan", "950gm", "premium"],
         imageUrl: "https://example.com/images/gp-anmol-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2128,7 +2014,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-200gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2147,7 +2032,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "350gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-350gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     {
@@ -2165,7 +2049,6 @@ exports.defaultProducts = [
         tags: ["roasted salted cashew", "35gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/roasted-salted-cashew.jpg",
         categoryName: "Dry Fruits & Nuts",
-        groupName: "Premium",
         subCategoryName: "Premium Nuts"
     },
     // Snacks & Namkeen - Final Products
@@ -2184,7 +2067,6 @@ exports.defaultProducts = [
         tags: ["mini samosa", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-samosa-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2202,7 +2084,6 @@ exports.defaultProducts = [
         tags: ["keshar milk", "180ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/keshar-milk.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2221,7 +2102,6 @@ exports.defaultProducts = [
         tags: ["lemon squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/lemon-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -2239,7 +2119,6 @@ exports.defaultProducts = [
         tags: ["orange squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/orange-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Products
@@ -2258,7 +2137,6 @@ exports.defaultProducts = [
         tags: ["rose squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/rose-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -2276,7 +2154,6 @@ exports.defaultProducts = [
         tags: ["pineapple squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/pineapple-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2295,7 +2172,6 @@ exports.defaultProducts = [
         tags: ["pasta", "macroni", "elbow", "5kg"],
         imageUrl: "https://example.com/images/pasta-macroni-elbow.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2313,7 +2189,6 @@ exports.defaultProducts = [
         tags: ["pellets", "trikona", "5kg", "premium"],
         imageUrl: "https://example.com/images/pellets-trikona.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2332,7 +2207,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "400gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2350,7 +2224,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "900gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-900gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2369,7 +2242,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "32gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2387,7 +2259,6 @@ exports.defaultProducts = [
         tags: ["bikaneri papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/bikaneri-papad-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2406,7 +2277,6 @@ exports.defaultProducts = [
         tags: ["punjabi medium papad", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/punjabi-medium-papad.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2424,7 +2294,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "sneh bandhan", "400gm", "premium"],
         imageUrl: "https://example.com/images/gp-sneh-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2443,7 +2312,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "madhur rishtey", "600gm", "premium"],
         imageUrl: "https://example.com/images/gp-madhur-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2461,7 +2329,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "atoot rishtey", "720gm", "premium"],
         imageUrl: "https://example.com/images/gp-atoot-rishtey.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2480,7 +2347,6 @@ exports.defaultProducts = [
         tags: ["gift pack", "anmol bandhan", "950gm", "premium"],
         imageUrl: "https://example.com/images/gp-anmol-bandhan.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2498,7 +2364,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-200gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2517,7 +2382,6 @@ exports.defaultProducts = [
         tags: ["agra petha", "350gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/agra-petha-350gm.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     {
@@ -2535,7 +2399,6 @@ exports.defaultProducts = [
         tags: ["roasted salted cashew", "35gm", "premium", "nuts"],
         imageUrl: "https://example.com/images/roasted-salted-cashew.jpg",
         categoryName: "Dry Fruits & Nuts",
-        groupName: "Premium",
         subCategoryName: "Premium Nuts"
     },
     // Snacks & Namkeen - Final Products
@@ -2554,7 +2417,6 @@ exports.defaultProducts = [
         tags: ["mini samosa", "200gm", "premium", "traditional"],
         imageUrl: "https://example.com/images/mini-samosa-200gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2572,7 +2434,6 @@ exports.defaultProducts = [
         tags: ["keshar milk", "180ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/keshar-milk.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2591,7 +2452,6 @@ exports.defaultProducts = [
         tags: ["lemon squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/lemon-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -2609,7 +2469,6 @@ exports.defaultProducts = [
         tags: ["orange squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/orange-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Products
@@ -2628,7 +2487,6 @@ exports.defaultProducts = [
         tags: ["rose squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/rose-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     {
@@ -2646,7 +2504,6 @@ exports.defaultProducts = [
         tags: ["pineapple squash", "750ml", "premium", "beverage"],
         imageUrl: "https://example.com/images/pineapple-squash.jpg",
         categoryName: "Beverages",
-        groupName: "Premium",
         subCategoryName: "Traditional Drinks"
     },
     // Snacks & Namkeen - Final Additional Products
@@ -2665,7 +2522,6 @@ exports.defaultProducts = [
         tags: ["pasta", "macroni", "elbow", "5kg"],
         imageUrl: "https://example.com/images/pasta-macroni-elbow.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2683,7 +2539,6 @@ exports.defaultProducts = [
         tags: ["pellets", "trikona", "5kg", "premium"],
         imageUrl: "https://example.com/images/pellets-trikona.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Snacks & Namkeen - Final Products
@@ -2702,7 +2557,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "400gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-400gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     {
@@ -2720,7 +2574,6 @@ exports.defaultProducts = [
         tags: ["vermicelli", "900gm", "premium", "pasta"],
         imageUrl: "https://example.com/images/vermicelli-900gm.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Premium",
         subCategoryName: "Mixed Namkeen"
     },
     // Sweets & Desserts - Ladoos
@@ -2739,7 +2592,6 @@ exports.defaultProducts = [
         tags: ["ladoo", "besan", "sweet", "traditional"],
         imageUrl: "https://example.com/images/besan-ladoo.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Standard",
         subCategoryName: "Ladoos"
     },
     {
@@ -2757,7 +2609,6 @@ exports.defaultProducts = [
         tags: ["ladoo", "motichoor", "premium", "sweet"],
         imageUrl: "https://example.com/images/motichoor-ladoo.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Ladoos"
     },
     // Sweets & Desserts - Barfis
@@ -2776,7 +2627,6 @@ exports.defaultProducts = [
         tags: ["barfi", "kaju", "cashew", "premium"],
         imageUrl: "https://example.com/images/kaju-barfi.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Premium",
         subCategoryName: "Barfis"
     },
     // Ready to Eat - Curries & Gravies
@@ -2795,7 +2645,6 @@ exports.defaultProducts = [
         tags: ["paneer", "curry", "ready to eat", "vegetarian"],
         imageUrl: "https://example.com/images/paneer-butter-masala.jpg",
         categoryName: "Ready to Eat",
-        groupName: "Standard",
         subCategoryName: "Curries & Gravies"
     },
     // Beverages - Fruit Juices
@@ -2814,7 +2663,6 @@ exports.defaultProducts = [
         tags: ["juice", "mango", "natural", "beverage"],
         imageUrl: "https://example.com/images/mango-juice.jpg",
         categoryName: "Beverages",
-        groupName: "Standard",
         subCategoryName: "Fruit Juices"
     },
     // Spices & Seasonings - Ground Spices
@@ -2833,7 +2681,6 @@ exports.defaultProducts = [
         tags: ["spices", "garam masala", "cooking", "blend"],
         imageUrl: "https://example.com/images/garam-masala.jpg",
         categoryName: "Spices & Seasonings",
-        groupName: "Standard",
         subCategoryName: "Spice Blends"
     },
     // Pickles & Chutneys - Mango Pickles
@@ -2852,7 +2699,6 @@ exports.defaultProducts = [
         tags: ["pickle", "mango", "sweet", "traditional"],
         imageUrl: "https://example.com/images/sweet-mango-pickle.jpg",
         categoryName: "Pickles & Chutneys",
-        groupName: "Standard",
         subCategoryName: "Mango Pickles"
     },
     // Dry Fruits & Nuts - Premium Nuts
@@ -2871,7 +2717,6 @@ exports.defaultProducts = [
         tags: ["almonds", "premium", "nuts", "roasted"],
         imageUrl: "https://example.com/images/premium-almonds.jpg",
         categoryName: "Dry Fruits & Nuts",
-        groupName: "Premium",
         subCategoryName: "Premium Nuts"
     },
     // Grocery & Staples - Rice & Pulses
@@ -2890,7 +2735,6 @@ exports.defaultProducts = [
         tags: ["rice", "basmati", "premium", "long grain"],
         imageUrl: "https://example.com/images/basmati-rice.jpg",
         categoryName: "Grocery & Staples",
-        groupName: "Premium",
         subCategoryName: "Rice & Pulses"
     },
     // Festival Special Products
@@ -2909,7 +2753,6 @@ exports.defaultProducts = [
         tags: ["diwali", "special", "assortment", "festival"],
         imageUrl: "https://example.com/images/diwali-special-mix.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Festival Special",
         subCategoryName: "Mixed Namkeen"
     },
     // Organic Products
@@ -2928,7 +2771,6 @@ exports.defaultProducts = [
         tags: ["organic", "nuts", "mixed", "certified"],
         imageUrl: "https://example.com/images/organic-mixed-nuts.jpg",
         categoryName: "Dry Fruits & Nuts",
-        groupName: "Organic",
         subCategoryName: "Mixed Dry Fruits"
     },
     // Diabetic Friendly Products
@@ -2947,7 +2789,6 @@ exports.defaultProducts = [
         tags: ["sugar-free", "ladoo", "diabetic", "natural"],
         imageUrl: "https://example.com/images/sugar-free-ladoo.jpg",
         categoryName: "Sweets & Desserts",
-        groupName: "Diabetic Friendly",
         subCategoryName: "Ladoos"
     },
     // Kids Special Products
@@ -2966,7 +2807,6 @@ exports.defaultProducts = [
         tags: ["kids", "snacks", "colorful", "fun"],
         imageUrl: "https://example.com/images/kids-snack-pack.jpg",
         categoryName: "Snacks & Namkeen",
-        groupName: "Kids Special",
         subCategoryName: "Mixed Namkeen"
     }
 ];

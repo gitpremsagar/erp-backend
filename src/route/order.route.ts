@@ -3,7 +3,8 @@ import {
   createOrder,
   getOrders,
   getOrderById,
-
+  getOrderByCustomOrderId,
+  getOrdersByOriginalOrderId,
   deleteOrder,
   getOrderStats,
   updateOrder,
@@ -31,6 +32,12 @@ router.get("/stats", getOrderStats);
 
 // Get a single order by ID
 router.get("/:orderId", getOrderById);
+
+// Get a single order by custom order ID
+router.get("/custom/:customOrderId", getOrderByCustomOrderId);
+
+// Get orders by original order ID
+router.get("/original/:originalOrderId", validateOrderQuery, getOrdersByOriginalOrderId);
 
 // Update an order
 router.put("/:orderId", validateUpdateOrder, updateOrder);

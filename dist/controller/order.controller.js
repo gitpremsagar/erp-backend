@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteOrder = exports.updateOrder = exports.getOrderById = exports.getOrderStats = exports.getOrders = exports.createOrder = void 0;
+exports.deleteOrder = exports.updateOrder = exports.getOrdersByOriginalOrderId = exports.getOrderByCustomOrderId = exports.getOrderById = exports.getOrderStats = exports.getOrders = exports.createOrder = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // Create a new order
 const createOrder = async (req, res) => {
     try {
-        const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice } = req.body;
+        const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
         // Check if customer exists
         const customer = await prisma.user.findUnique({
             where: { id: customerId },
@@ -30,6 +30,24 @@ const createOrder = async (req, res) => {
             });
             if (!deliveryAddress) {
                 return res.status(404).json({ message: "Delivery address not found" });
+            }
+        }
+        // Check if original order exists if provided
+        if (originalOrderId) {
+            const originalOrder = await prisma.order.findUnique({
+                where: { id: originalOrderId },
+            });
+            if (!originalOrder) {
+                return res.status(404).json({ message: "Original order not found" });
+            }
+        }
+        // Check if stock record exists if provided
+        if (stockRecordId) {
+            const stockRecord = await prisma.stockRecord.findUnique({
+                where: { id: stockRecordId },
+            });
+            if (!stockRecord) {
+                return res.status(404).json({ message: "Stock record not found" });
             }
         }
         // Check if all products exist
@@ -58,11 +76,14 @@ const createOrder = async (req, res) => {
                     vehicleId,
                     deliveryAddressId,
                     totalPrice: totalPrice || 0,
+                    originalOrderId,
+                    stockRecordId,
                 },
                 include: {
                     customer: true,
                     vehicle: true,
                     deliveryAddress: true,
+                    stockRecord: true,
                 },
             });
             // Create order items and update product stock
@@ -95,6 +116,7 @@ const createOrder = async (req, res) => {
                 customer: true,
                 vehicle: true,
                 deliveryAddress: true,
+                stockRecord: true,
                 OrderItem: {
                     include: {
                         Product: true,
@@ -142,6 +164,7 @@ const getOrders = async (req, res) => {
                     customer: true,
                     vehicle: true,
                     deliveryAddress: true,
+                    stockRecord: true,
                     OrderItem: {
                         include: {
                             Product: true,
@@ -208,6 +231,7 @@ const getOrderById = async (req, res) => {
                 customer: true,
                 vehicle: true,
                 deliveryAddress: true,
+                stockRecord: true,
                 OrderItem: {
                     include: {
                         Product: true,
@@ -227,11 +251,87 @@ const getOrderById = async (req, res) => {
     }
 };
 exports.getOrderById = getOrderById;
+// Get a single order by custom order ID
+const getOrderByCustomOrderId = async (req, res) => {
+    try {
+        const { customOrderId } = req.params;
+        const order = await prisma.order.findUnique({
+            where: { customeOrderId: customOrderId },
+            include: {
+                customer: true,
+                vehicle: true,
+                deliveryAddress: true,
+                stockRecord: true,
+                OrderItem: {
+                    include: {
+                        Product: true,
+                        Customer: true,
+                    },
+                },
+            },
+        });
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        res.json({ order });
+    }
+    catch (error) {
+        console.error("Error fetching order by custom order ID:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.getOrderByCustomOrderId = getOrderByCustomOrderId;
+// Get orders by original order ID (for tracking order modifications)
+const getOrdersByOriginalOrderId = async (req, res) => {
+    try {
+        const { originalOrderId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        const [orders, total] = await Promise.all([
+            prisma.order.findMany({
+                where: { originalOrderId },
+                skip,
+                take: Number(limit),
+                include: {
+                    customer: true,
+                    vehicle: true,
+                    deliveryAddress: true,
+                    stockRecord: true,
+                    OrderItem: {
+                        include: {
+                            Product: true,
+                            Customer: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    orderDate: "desc",
+                },
+            }),
+            prisma.order.count({ where: { originalOrderId } }),
+        ]);
+        const totalPages = Math.ceil(total / Number(limit));
+        res.json({
+            orders,
+            pagination: {
+                currentPage: Number(page),
+                totalPages,
+                totalItems: total,
+                itemsPerPage: Number(limit),
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching orders by original order ID:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.getOrdersByOriginalOrderId = getOrdersByOriginalOrderId;
 // Update an order
 const updateOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId } = req.body;
+        const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
         // Check if order exists
         const existingOrder = await prisma.order.findUnique({
             where: { id: orderId },
@@ -266,6 +366,24 @@ const updateOrder = async (req, res) => {
                 return res.status(404).json({ message: "Delivery address not found" });
             }
         }
+        // Check if original order exists if updating originalOrderId
+        if (originalOrderId) {
+            const originalOrder = await prisma.order.findUnique({
+                where: { id: originalOrderId },
+            });
+            if (!originalOrder) {
+                return res.status(404).json({ message: "Original order not found" });
+            }
+        }
+        // Check if stock record exists if updating stockRecordId
+        if (stockRecordId) {
+            const stockRecord = await prisma.stockRecord.findUnique({
+                where: { id: stockRecordId },
+            });
+            if (!stockRecord) {
+                return res.status(404).json({ message: "Stock record not found" });
+            }
+        }
         // Update the order
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
@@ -276,11 +394,13 @@ const updateOrder = async (req, res) => {
                 deliveryAddressId,
                 totalPrice,
                 originalOrderId,
+                stockRecordId,
             },
             include: {
                 customer: true,
                 vehicle: true,
                 deliveryAddress: true,
+                stockRecord: true,
                 OrderItem: {
                     include: {
                         Product: true,
