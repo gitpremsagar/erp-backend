@@ -21,7 +21,7 @@ const app = express();
 // allow all origins
 app.use(
   cors({
-    origin: process.env.FRONTEND_DOMAIN || "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://erp-frontend-sepia.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
