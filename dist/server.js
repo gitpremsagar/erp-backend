@@ -21,7 +21,7 @@ const productTag_route_1 = __importDefault(require("./route/productTag.route"));
 const app = (0, express_1.default)();
 // allow all origins
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_DOMAIN || "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://erp-frontend-sepia.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
