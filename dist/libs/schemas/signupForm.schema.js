@@ -25,6 +25,7 @@ exports.SignupFormSchema = zod_1.z
     pan: zod_1.z.string().optional(),
     gstNumber: zod_1.z.string().optional(),
     address: zod_1.z.string().optional(),
+    userType: zod_1.z.enum(["ADMIN", "ORDER_PROCESSOR", "CUSTOMER", "EMPLOYEE", "FINANCE_MANAGER", "STOCK_MANAGER"]).optional(),
     confirmPassword: zod_1.z
         .string()
         .min(6, "Confirm Password must be at least 6 characters long")

@@ -159,7 +159,7 @@ export const seedDatabase = async () => {
         console.log(`❌ Required references not found for product: ${product.name}`);
         console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
         console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
-        console.log(`   Note: groupName '${(product as any).groupName}' is ignored (Group model removed)`);
+        console.log(`   Note: groupName is ignored (Group model removed)`);
         continue;
       }
 
@@ -253,7 +253,7 @@ export const seedDatabase = async () => {
           }
         }
 
-        console.log(`✅ Created product: ${product.name} (${product.productCode}) - Group: ${(product as any).groupName || 'N/A'} (ignored)`);
+        console.log(`✅ Created product: ${product.name} (${product.productCode})`);
       } else {
         console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
       }

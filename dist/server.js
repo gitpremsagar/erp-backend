@@ -10,7 +10,6 @@ const cors_1 = __importDefault(require("cors"));
 const auth_route_1 = __importDefault(require("./route/auth.route"));
 const product_route_1 = __importDefault(require("./route/product.route"));
 const category_route_1 = __importDefault(require("./route/category.route"));
-const group_route_1 = __importDefault(require("./route/group.route"));
 const subcategory_route_1 = __importDefault(require("./route/subcategory.route"));
 const vehicle_route_1 = __importDefault(require("./route/vehicle.route"));
 const order_route_1 = __importDefault(require("./route/order.route"));
@@ -18,10 +17,11 @@ const orderItem_route_1 = __importDefault(require("./route/orderItem.route"));
 const customer_route_1 = __importDefault(require("./route/customer.route"));
 const deliveryAddress_route_1 = __importDefault(require("./route/deliveryAddress.route"));
 const userPrivilege_route_1 = __importDefault(require("./route/userPrivilege.route"));
+const productTag_route_1 = __importDefault(require("./route/productTag.route"));
 const app = (0, express_1.default)();
 // allow all origins
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_DOMAIN || "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://erp-frontend-sepia.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -30,7 +30,7 @@ app.use((0, cors_1.default)({
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.get("/", (req, res) => {
-    res.send("Hello World! Edited");
+    res.send("Hello World! Test from desktop!");
 });
 // endpoints
 app.use("/api/auth", auth_route_1.default);
@@ -38,12 +38,12 @@ app.use("/api/user-privileges", userPrivilege_route_1.default);
 app.use("/api/products", product_route_1.default);
 app.use("/api/categories", category_route_1.default);
 app.use("/api/sub-categories", subcategory_route_1.default);
-app.use("/api/groups", group_route_1.default);
 app.use("/api/vehicles", vehicle_route_1.default);
 app.use("/api/orders", order_route_1.default);
 app.use("/api/order-items", orderItem_route_1.default);
 app.use("/api/customers", customer_route_1.default);
 app.use("/api/delivery-addresses", deliveryAddress_route_1.default);
+app.use("/api/product-tags", productTag_route_1.default);
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

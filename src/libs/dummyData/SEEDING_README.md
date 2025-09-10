@@ -8,7 +8,6 @@ This directory contains all the dummy data and seeding logic for the ERP system 
 - **`seedDatabase.ts`** - Main seeding function that orchestrates the entire seeding process
 - **`defaultPrivileges.ts`** - User privilege definitions (ADMIN, CUSTOMER, etc.)
 - **`defaultCategories.ts`** - Product category definitions
-- **`defaultGroups.ts`** - Product group definitions
 - **`defaultSubCategories.ts`** - Product subcategory definitions
 - **`defaultProducts.ts`** - Product definitions with realistic data
 - **`defaultCustomers.ts`** - Customer user definitions
@@ -26,15 +25,14 @@ The seeding process follows this order to maintain referential integrity:
 
 1. **User Privileges** - Create basic user roles
 2. **Categories** - Create product categories
-3. **Groups** - Create product groups
-4. **Subcategories** - Create product subcategories (linked to categories)
-5. **Products** - Create products (linked to categories, groups, and subcategories)
-6. **Admin User** - Create default system administrator
-7. **Customers** - Create customer users
-8. **Sample Customer** - Create additional sample customer
-9. **Vehicles** - Create delivery vehicles
-10. **Orders** - Create orders (linked to customers, delivery addresses, and vehicles)
-11. **Order Items** - Create order items (linked to orders, products, and customers)
+3. **Subcategories** - Create product subcategories (linked to categories)
+4. **Products** - Create products (linked to categories and subcategories)
+5. **Admin User** - Create default system administrator
+6. **Customers** - Create customer users
+7. **Sample Customer** - Create additional sample customer
+8. **Vehicles** - Create delivery vehicles
+9. **Orders** - Create orders (linked to customers, delivery addresses, and vehicles)
+10. **Order Items** - Create order items (linked to orders, products, and customers)
 
 ## Order Seeding Details
 
@@ -97,7 +95,7 @@ After seeding, the following default users are available:
 
 The seeding ensures proper relationships between:
 - Users and their privileges
-- Products and their categories/groups/subcategories
+- Products and their categories/subcategories
 - Orders and their customers/delivery addresses/vehicles
 - Order items and their orders/products/customers
 

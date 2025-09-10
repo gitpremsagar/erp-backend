@@ -17,6 +17,10 @@ router.get("/", order_middleware_1.validateOrderQuery, order_controller_1.getOrd
 router.get("/stats", order_controller_1.getOrderStats);
 // Get a single order by ID
 router.get("/:orderId", order_controller_1.getOrderById);
+// Get a single order by custom order ID
+router.get("/custom/:customOrderId", order_controller_1.getOrderByCustomOrderId);
+// Get orders by original order ID
+router.get("/original/:originalOrderId", order_middleware_1.validateOrderQuery, order_controller_1.getOrdersByOriginalOrderId);
 // Update an order
 router.put("/:orderId", order_middleware_1.validateUpdateOrder, order_controller_1.updateOrder);
 // Delete an order

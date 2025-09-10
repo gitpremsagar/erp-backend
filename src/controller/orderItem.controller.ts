@@ -43,10 +43,17 @@ export const createOrderItem = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Calculate current stock from stock records
+    const stockRecords = await prisma.stockRecord.findMany({
+      where: { productId },
+    });
+    
+    const currentStock = stockRecords.reduce((total, record) => total + record.changeInStock, 0);
+    
     // Check if product has sufficient stock
-    if (product.stock < quantity) {
+    if (currentStock < quantity) {
       return res.status(400).json({ 
-        message: `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}` 
+        message: `Insufficient stock. Available: ${currentStock}, Requested: ${quantity}` 
       });
     }
 
@@ -64,7 +71,6 @@ export const createOrderItem = async (req: Request, res: Response) => {
         Product: {
           include: {
             Category: true,
-            Group: true,
             SubCategory: true,
           },
         },
@@ -72,24 +78,18 @@ export const createOrderItem = async (req: Request, res: Response) => {
       },
     });
 
-    // Update product stock
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        stock: product.stock - quantity,
-      },
-    });
+    // Stock is managed through StockRecord, no direct update needed
 
     // Create stock entry record
-    await prisma.stockEntry.create({
-      data: {
-        productId,
-        changeInStock: -quantity,
-        // TODO: fix it
-        // updatedBy: req.user?.id || "system", // Assuming user info is available in req.user
-        updatedBy: "system",
-      },
-    });
+    // await prisma.stockRecord.create({
+    //   data: {
+    //     productId,
+    //     changeInStock: -quantity,
+    //     createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+    //     stockId: "default", // TODO: Replace with actual stock ID
+    //     reason: "DELIVERED_TO_CUSTOMER",
+    //   },
+    // });
 
     res.status(201).json({ orderItem });
   } catch (error) {
@@ -147,7 +147,6 @@ export const getOrderItems = async (req: Request, res: Response) => {
           Product: {
             include: {
               Category: true,
-              Group: true,
               SubCategory: true,
             },
           },
@@ -189,7 +188,6 @@ export const getProducOrderHistory = async (req: Request, res: Response) => {
         Product: {
           include: {
             Category: true,
-            Group: true,
             SubCategory: true,
           },
         },
@@ -248,30 +246,31 @@ export const updateOrderItem = async (req: Request, res: Response) => {
       const quantityDifference = updateData.quantity - existingOrderItem.quantity;
       
       if (quantityDifference > 0) {
+        // Calculate current stock from stock records
+        const stockRecords = await prisma.stockRecord.findMany({
+          where: { productId: existingOrderItem.productId },
+        });
+        
+        const currentStock = stockRecords.reduce((total, record) => total + record.changeInStock, 0);
+        
         // Check if product has sufficient stock for increase
-        if (existingOrderItem.Product.stock < quantityDifference) {
+        if (currentStock < quantityDifference) {
           return res.status(400).json({ 
-            message: `Insufficient stock. Available: ${existingOrderItem.Product.stock}, Additional needed: ${quantityDifference}` 
+            message: `Insufficient stock. Available: ${currentStock}, Additional needed: ${quantityDifference}` 
           });
         }
       }
 
-      // Update product stock
-      await prisma.product.update({
-        where: { id: existingOrderItem.productId },
-        data: {
-          stock: existingOrderItem.Product.stock - quantityDifference,
-        },
-      });
+      // Stock is managed through StockRecord, no direct update needed
 
       // Create stock entry record
-      await prisma.stockEntry.create({
+      await prisma.stockRecord.create({
         data: {
           productId: existingOrderItem.productId,
           changeInStock: -quantityDifference,
-          // TODO: fix it
-          // updatedBy: req.user?.id || "system",
-          updatedBy: "system",
+          createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+          stockId: "default", // TODO: Replace with actual stock ID
+          reason: "DELIVERED_TO_CUSTOMER",
         },
       });
     }
@@ -289,7 +288,6 @@ export const updateOrderItem = async (req: Request, res: Response) => {
         Product: {
           include: {
             Category: true,
-            Group: true,
             SubCategory: true,
           },
         },
@@ -321,22 +319,16 @@ export const deleteOrderItem = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Order item not found" });
     }
 
-    // Restore product stock
-    await prisma.product.update({
-      where: { id: existingOrderItem.productId },
-      data: {
-        stock: existingOrderItem.Product.stock + existingOrderItem.quantity,
-      },
-    });
+    // Stock is managed through StockRecord, no direct update needed
 
     // Create stock entry record
-    await prisma.stockEntry.create({
+    await prisma.stockRecord.create({
       data: {
         productId: existingOrderItem.productId,
         changeInStock: existingOrderItem.quantity,
-        // TODO: fix it
-        // updatedBy: req.user?.id || "system",
-        updatedBy: "system",
+        createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+        stockId: "default", // TODO: Replace with actual stock ID
+        reason: "CORRECTION_BY_ADMIN",
       },
     });
 

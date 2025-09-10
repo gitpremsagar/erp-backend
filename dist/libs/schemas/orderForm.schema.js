@@ -22,6 +22,16 @@ exports.CreateOrderSchema = zod_1.z.object({
         .min(24, "Invalid delivery address ID")
         .max(24, "Invalid delivery address ID")
         .optional(),
+    originalOrderId: zod_1.z
+        .string()
+        .min(24, "Invalid original order ID")
+        .max(24, "Invalid original order ID")
+        .optional(),
+    stockRecordId: zod_1.z
+        .string()
+        .min(24, "Invalid stock record ID")
+        .max(24, "Invalid stock record ID")
+        .optional(),
     orderItems: zod_1.z.array(zod_1.z.object({
         productId: zod_1.z
             .string()
@@ -59,6 +69,11 @@ exports.UpdateOrderSchema = zod_1.z.object({
         .string()
         .min(24, "Invalid original order ID")
         .max(24, "Invalid original order ID")
+        .optional(),
+    stockRecordId: zod_1.z
+        .string()
+        .min(24, "Invalid stock record ID")
+        .max(24, "Invalid stock record ID")
         .optional(),
     orderItems: zod_1.z.array(zod_1.z.object({
         productId: zod_1.z

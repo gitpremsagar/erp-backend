@@ -8,7 +8,7 @@ const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const defaultPrivileges_1 = require("./defaultPrivileges");
 const defaultCategories_1 = require("./defaultCategories");
-const defaultGroups_1 = require("./defaultGroups");
+// import { defaultGroups } from "./defaultGroups"; // Removed - Group model no longer exists
 const defaultSubCategories_1 = require("./defaultSubCategories");
 const defaultProducts_1 = require("./defaultProducts");
 const defaultCustomers_1 = require("./defaultCustomers");
@@ -54,24 +54,26 @@ const seedDatabase = async () => {
                 console.log(`⏭️  Category already exists: ${category.name}`);
             }
         }
-        // Seed groups
-        console.log("🏷️  Seeding groups...");
-        const groupMap = new Map(); // name -> id mapping
-        for (const group of defaultGroups_1.defaultGroups) {
-            const existingGroup = await prisma.group.findUnique({
-                where: { name: group.name },
+        // Seed color codes for stock alerts
+        console.log("🎨 Seeding color codes...");
+        const existingColorCode = await prisma.colorCode.findFirst();
+        if (!existingColorCode) {
+            await prisma.colorCode.create({
+                data: {
+                    lowStockAlertColor: "#FFA500", // Orange
+                    lowStockAlertMessage: "Low Stock Alert",
+                    overStockAlertColor: "#FF0000", // Red
+                    overStockAlertMessage: "Over Stock Alert",
+                    inStockAlertColor: "#008000", // Green
+                    inStockAlertMessage: "In Stock",
+                    expiryAlertColor: "#FF0000", // Red
+                    expiryAlertMessage: "Expired Product",
+                },
             });
-            if (!existingGroup) {
-                const createdGroup = await prisma.group.create({
-                    data: group,
-                });
-                groupMap.set(group.name, createdGroup.id);
-                console.log(`✅ Created group: ${group.name}`);
-            }
-            else {
-                groupMap.set(group.name, existingGroup.id);
-                console.log(`⏭️  Group already exists: ${group.name}`);
-            }
+            console.log("✅ Created default color codes");
+        }
+        else {
+            console.log("⏭️  Color codes already exist");
         }
         // Seed subcategories
         console.log("📁 Seeding subcategories...");
@@ -101,55 +103,13 @@ const seedDatabase = async () => {
                 console.log(`⏭️  Subcategory already exists: ${subCategory.name}`);
             }
         }
-        // Seed products
-        console.log("🛍️  Seeding products...");
-        for (const product of defaultProducts_1.defaultProducts) {
-            const categoryId = categoryMap.get(product.categoryName);
-            const groupId = groupMap.get(product.groupName);
-            const subCategoryId = subCategoryMap.get(product.subCategoryName);
-            if (!categoryId || !groupId || !subCategoryId) {
-                console.log(`❌ Required references not found for product: ${product.name}`);
-                console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
-                console.log(`   Group: ${product.groupName} (${groupId ? '✓' : '✗'})`);
-                console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
-                continue;
-            }
-            const existingProduct = await prisma.product.findUnique({
-                where: { productCode: product.productCode },
-            });
-            if (!existingProduct) {
-                await prisma.product.create({
-                    data: {
-                        name: product.name,
-                        mrp: product.mrp,
-                        productCode: product.productCode,
-                        description: product.description,
-                        expiryDate: product.expiryDate,
-                        validity: product.validity,
-                        stock: product.stock,
-                        stockEntryDate: product.stockEntryDate,
-                        lowStockLimit: product.lowStockLimit,
-                        overStockLimit: product.overStockLimit,
-                        grammage: product.grammage,
-                        tags: product.tags,
-                        imageUrl: product.imageUrl,
-                        categoryId: categoryId,
-                        groupId: groupId,
-                        subCategoryId: subCategoryId,
-                    },
-                });
-                console.log(`✅ Created product: ${product.name} (${product.productCode})`);
-            }
-            else {
-                console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
-            }
-        }
         // Create default admin user if it doesn't exist
         console.log("👤 Checking for default admin user...");
         const adminEmail = "admin@edigitalindia.com";
         const existingAdmin = await prisma.user.findUnique({
             where: { email: adminEmail },
         });
+        let adminUser = existingAdmin;
         if (!existingAdmin) {
             // Get admin privilege
             const adminPrivileges = await prisma.userPrivilege.findMany({
@@ -158,7 +118,7 @@ const seedDatabase = async () => {
             if (adminPrivileges.length > 0) {
                 const adminPrivilege = adminPrivileges[0];
                 const hashedPassword = await bcrypt_1.default.hash("admin123", 10);
-                await prisma.user.create({
+                adminUser = await prisma.user.create({
                     data: {
                         email: adminEmail,
                         password: hashedPassword,
@@ -174,10 +134,110 @@ const seedDatabase = async () => {
             }
             else {
                 console.log("❌ Admin privilege not found, cannot create admin user");
+                return;
             }
         }
         else {
             console.log("⏭️  Default admin user already exists");
+        }
+        // Seed products
+        console.log("🛍️  Seeding products...");
+        for (const product of defaultProducts_1.defaultProducts) {
+            const categoryId = categoryMap.get(product.categoryName);
+            const subCategoryId = subCategoryMap.get(product.subCategoryName);
+            if (!categoryId || !subCategoryId) {
+                console.log(`❌ Required references not found for product: ${product.name}`);
+                console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
+                console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
+                console.log(`   Note: groupName is ignored (Group model removed)`);
+                continue;
+            }
+            const existingProduct = await prisma.product.findUnique({
+                where: { productCode: product.productCode },
+            });
+            if (!existingProduct) {
+                // Create product with new schema structure
+                const createdProduct = await prisma.product.create({
+                    data: {
+                        name: product.name,
+                        mrp: product.mrp,
+                        productCode: product.productCode,
+                        description: product.description,
+                        lowStockLimit: product.lowStockLimit,
+                        overStockLimit: product.overStockLimit,
+                        grammage: product.grammage,
+                        imageUrl: product.imageUrl,
+                        categoryId: categoryId,
+                        subCategoryId: subCategoryId,
+                        creatorId: adminUser.id,
+                    },
+                });
+                // Create stock entry if stock data exists
+                if (product.stock && product.stock > 0) {
+                    // Use existing data from product or defaults
+                    const manufacturingDate = new Date();
+                    const arrivalDate = product.stockEntryDate || new Date();
+                    const expiryDate = product.expiryDate || new Date();
+                    // Calculate validity months from the validity string or use default
+                    let validityMonths = 1;
+                    if (product.validity) {
+                        const validityStr = product.validity.toLowerCase();
+                        if (validityStr.includes('month')) {
+                            const match = validityStr.match(/(\d+)\s*month/);
+                            if (match) {
+                                validityMonths = parseInt(match[1]);
+                            }
+                        }
+                    }
+                    const stock = await prisma.stock.create({
+                        data: {
+                            stockId: `STK-${product.productCode}-${Date.now()}`,
+                            productId: createdProduct.id,
+                            manufacturingDate: manufacturingDate,
+                            arrivalDate: arrivalDate,
+                            validityMonths: validityMonths,
+                            expiryDate: expiryDate,
+                            supplierName: "Default Supplier",
+                            stockQuantity: product.stock,
+                        },
+                    });
+                    // Create stock record for the initial stock entry
+                    await prisma.stockRecord.create({
+                        data: {
+                            productId: createdProduct.id,
+                            changeInStock: product.stock,
+                            createdBy: adminUser.id,
+                            stockId: stock.stockId,
+                            reason: "ARRIVAL_FROM_SUPPLIER",
+                        },
+                    });
+                }
+                // Create product tags if they exist
+                if (product.tags && product.tags.length > 0) {
+                    for (const tagName of product.tags) {
+                        // Find or create the tag
+                        let tag = await prisma.productTag.findFirst({
+                            where: { name: tagName },
+                        });
+                        if (!tag) {
+                            tag = await prisma.productTag.create({
+                                data: { name: tagName },
+                            });
+                        }
+                        // Create the relation
+                        await prisma.productTagRelation.create({
+                            data: {
+                                productId: createdProduct.id,
+                                productTagId: tag.id,
+                            },
+                        });
+                    }
+                }
+                console.log(`✅ Created product: ${product.name} (${product.productCode})`);
+            }
+            else {
+                console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
+            }
         }
         // Seed customers
         console.log("👥 Seeding customers...");
