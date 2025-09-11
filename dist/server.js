@@ -16,7 +16,6 @@ const order_route_1 = __importDefault(require("./route/order.route"));
 const orderItem_route_1 = __importDefault(require("./route/orderItem.route"));
 const customer_route_1 = __importDefault(require("./route/customer.route"));
 const deliveryAddress_route_1 = __importDefault(require("./route/deliveryAddress.route"));
-const userPrivilege_route_1 = __importDefault(require("./route/userPrivilege.route"));
 const productTag_route_1 = __importDefault(require("./route/productTag.route"));
 const app = (0, express_1.default)();
 // allow all origins
@@ -34,7 +33,6 @@ app.get("/", (req, res) => {
 });
 // endpoints
 app.use("/api/auth", auth_route_1.default);
-app.use("/api/user-privileges", userPrivilege_route_1.default);
 app.use("/api/products", product_route_1.default);
 app.use("/api/categories", category_route_1.default);
 app.use("/api/sub-categories", subcategory_route_1.default);

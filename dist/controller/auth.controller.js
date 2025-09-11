@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePassword = exports.forgotPassword = exports.assignPrivilege = exports.getUserProfile = exports.decodeAccessToken = exports.refreshAccessToken = exports.signout = exports.signin = exports.signup = void 0;
+exports.changePassword = exports.forgotPassword = exports.getUserProfile = exports.decodeAccessToken = exports.refreshAccessToken = exports.signout = exports.signin = exports.signup = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const client_1 = require("@prisma/client");
@@ -27,7 +27,6 @@ const signup = async (req, res) => {
                 password: hashedPassword,
                 name,
                 phone,
-                privilegeId: null,
                 aadharNumber: aadharNumber || null,
                 pan: pan || null,
                 gstNumber: gstNumber || null,
@@ -122,9 +121,6 @@ const refreshAccessToken = async (req, res) => {
         const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_JWT_SECRET);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            include: {
-                privilege: true,
-            },
         });
         if (!user) {
             return res.status(401).json({ message: "Invalid refresh token" });
@@ -166,9 +162,6 @@ const decodeAccessToken = async (req, res) => {
         // Get fresh user data from database
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
-            include: {
-                privilege: true,
-            },
         });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -188,9 +181,6 @@ const getUserProfile = async (req, res) => {
         const userId = req.user.id;
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: {
-                privilege: true,
-            },
         });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -205,44 +195,6 @@ const getUserProfile = async (req, res) => {
     }
 };
 exports.getUserProfile = getUserProfile;
-const assignPrivilege = async (req, res) => {
-    try {
-        const { userId, privilegeId } = req.body;
-        // Check if user exists
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-        });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        // Check if privilege exists
-        const privilege = await prisma.userPrivilege.findUnique({
-            where: { id: privilegeId },
-        });
-        if (!privilege) {
-            return res.status(404).json({ message: "Privilege not found" });
-        }
-        // Update user with new privilege
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: { privilegeId },
-            include: {
-                privilege: true,
-            },
-        });
-        // Remove password from response
-        const { password: _, ...userWithoutPassword } = updatedUser;
-        res.json({
-            message: "Privilege assigned successfully",
-            user: userWithoutPassword,
-        });
-    }
-    catch (error) {
-        console.error("Error assigning privilege:\n", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-};
-exports.assignPrivilege = assignPrivilege;
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
     // Implement forgot password logic here

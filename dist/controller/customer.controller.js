@@ -7,6 +7,7 @@ const prisma = new client_1.PrismaClient();
 const createCustomer = async (req, res) => {
     try {
         const { name, aadharNumber, email, phone, address, pan, gstNumber, password, } = req.body;
+        console.log(req.body);
         // Check if user with same email or phone already exists
         const existingUser = await prisma.user.findFirst({
             where: {
@@ -24,13 +25,6 @@ const createCustomer = async (req, res) => {
                 message: "User with same email, phone, Aadhar, PAN, or GST number already exists"
             });
         }
-        // Get the CUSTOMER privilege ID
-        const customerPrivilege = await prisma.userPrivilege.findFirst({
-            where: { name: "CUSTOMER" },
-        });
-        if (!customerPrivilege) {
-            return res.status(500).json({ message: "Customer privilege not found" });
-        }
         // Hash the password
         const bcrypt = require("bcrypt");
         const hashedPassword = await bcrypt.hash(password || "defaultPassword123", +process.env.BCRYPT_SALT_ROUNDS || 10);
@@ -40,14 +34,11 @@ const createCustomer = async (req, res) => {
                 email,
                 phone,
                 password: hashedPassword,
-                privilegeId: customerPrivilege.id,
+                userType: "CUSTOMER",
                 aadharNumber,
                 pan,
                 gstNumber,
                 address,
-            },
-            include: {
-                privilege: true,
             },
         });
         res.status(201).json({ customer });
@@ -60,19 +51,13 @@ const createCustomer = async (req, res) => {
 exports.createCustomer = createCustomer;
 // Get all customers with pagination and search
 const getCustomers = async (req, res) => {
+    console.log(req.query);
     try {
         const { page = 1, limit = 10, search, } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
-        // Get the CUSTOMER privilege ID
-        const customerPrivilege = await prisma.userPrivilege.findFirst({
-            where: { name: "CUSTOMER" },
-        });
-        if (!customerPrivilege) {
-            return res.status(500).json({ message: "Customer privilege not found" });
-        }
         // Build where clause
         const where = {
-            privilegeId: customerPrivilege.id,
+            userType: "CUSTOMER",
         };
         if (search) {
             where.OR = [
@@ -86,9 +71,6 @@ const getCustomers = async (req, res) => {
                 where,
                 skip,
                 take: Number(limit),
-                include: {
-                    privilege: true,
-                },
                 orderBy: {
                     createdAt: "desc",
                 },
@@ -115,20 +97,13 @@ exports.getCustomers = getCustomers;
 // Get customer statistics
 const getCustomerStats = async (req, res) => {
     try {
-        // Get the CUSTOMER privilege ID
-        const customerPrivilege = await prisma.userPrivilege.findFirst({
-            where: { name: "CUSTOMER" },
-        });
-        if (!customerPrivilege) {
-            return res.status(500).json({ message: "Customer privilege not found" });
-        }
         const [totalCustomers, customersWithOrders] = await Promise.all([
             prisma.user.count({
-                where: { privilegeId: customerPrivilege.id },
+                where: { userType: "CUSTOMER" },
             }),
             prisma.user.count({
                 where: {
-                    privilegeId: customerPrivilege.id,
+                    userType: "CUSTOMER",
                     Order: {
                         some: {},
                     },
@@ -154,7 +129,6 @@ const getCustomerById = async (req, res) => {
         const customer = await prisma.user.findUnique({
             where: { id },
             include: {
-                privilege: true,
                 Order: {
                     include: {
                         OrderItem: {
@@ -173,7 +147,7 @@ const getCustomerById = async (req, res) => {
             return res.status(404).json({ message: "Customer not found" });
         }
         // Check if user is actually a customer
-        if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
+        if (customer.userType !== "CUSTOMER") {
             return res.status(400).json({ message: "User is not a customer" });
         }
         res.json({ customer });
@@ -192,14 +166,11 @@ const updateCustomer = async (req, res) => {
         // Check if customer exists and is actually a customer
         const existingCustomer = await prisma.user.findUnique({
             where: { id },
-            include: {
-                privilege: true,
-            },
         });
         if (!existingCustomer) {
             return res.status(404).json({ message: "Customer not found" });
         }
-        if (!existingCustomer.privilege || existingCustomer.privilege.name !== "CUSTOMER") {
+        if (existingCustomer.userType !== "CUSTOMER") {
             return res.status(400).json({ message: "User is not a customer" });
         }
         // Check for conflicts with other users if updating unique fields
@@ -229,9 +200,6 @@ const updateCustomer = async (req, res) => {
         const updatedCustomer = await prisma.user.update({
             where: { id },
             data: updateData,
-            include: {
-                privilege: true,
-            },
         });
         res.json({ customer: updatedCustomer });
     }
@@ -249,14 +217,13 @@ const deleteCustomer = async (req, res) => {
         const customer = await prisma.user.findUnique({
             where: { id },
             include: {
-                privilege: true,
                 Order: true,
             },
         });
         if (!customer) {
             return res.status(404).json({ message: "Customer not found" });
         }
-        if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
+        if (customer.userType !== "CUSTOMER") {
             return res.status(400).json({ message: "User is not a customer" });
         }
         // Check if customer has orders

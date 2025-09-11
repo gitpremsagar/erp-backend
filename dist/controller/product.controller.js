@@ -45,14 +45,12 @@ const createProduct = async (req, res) => {
                     overStockLimit: overStockLimit || 0,
                     categoryId,
                     subCategoryId,
-                    creatorId: userId,
                     grammage,
                     imageUrl,
                 },
                 include: {
                     Category: true,
                     SubCategory: true,
-                    User: true,
                 },
             });
             // Create stock entry if stock data is provided
@@ -123,7 +121,7 @@ const createProduct = async (req, res) => {
 exports.createProduct = createProduct;
 // Get all products with pagination and filtering
 const getProducts = async (req, res) => {
-    // console.log("getProducts");
+    console.log("getProducts");
     try {
         const { page = 1, limit = 10, search, categoryId, subCategoryId, minPrice, maxPrice, productTagIds, } = req.query;
         // Convert string values to numbers
@@ -183,12 +181,6 @@ const getProducts = async (req, res) => {
                             name: true,
                         },
                     },
-                    User: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
                     ProductTagRelation: {
                         include: {
                             ProductTag: {
@@ -239,7 +231,6 @@ const getProductById = async (req, res) => {
             include: {
                 Category: true,
                 SubCategory: true,
-                User: true,
                 ProductTagRelation: {
                     include: {
                         ProductTag: true,
@@ -247,9 +238,6 @@ const getProductById = async (req, res) => {
                 },
                 Stock: true,
                 StockRecord: {
-                    include: {
-                        User: true,
-                    },
                     orderBy: { createdAt: "desc" },
                 },
             },
@@ -340,7 +328,6 @@ const updateProduct = async (req, res) => {
             include: {
                 Category: true,
                 SubCategory: true,
-                User: true,
                 ProductTagRelation: {
                     include: {
                         ProductTag: true,
