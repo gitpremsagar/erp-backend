@@ -68,6 +68,7 @@ export const createCustomer = async (req: Request, res: Response) => {
 
 // Get all customers with pagination and search
 export const getCustomers = async (req: Request, res: Response) => {
+  console.log(req.query);
   try {
     const {
       page = 1,

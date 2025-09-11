@@ -22,7 +22,6 @@ Creates a new user account.
   "confirmPassword": "password123",
   "name": "John Doe",
   "phone": "9876543210",
-  "privilegeId": "507f1f77bcf86cd799439011",
   "aadharNumber": 123456789012,
   "pan": "ABCDE1234F",
   "gstNumber": "22AAAAA0000A1Z5",
@@ -36,7 +35,6 @@ Creates a new user account.
 - `confirmPassword`: Must match password
 - `name`: 2-100 characters
 - `phone`: 10-15 digits
-- `privilegeId`: Valid privilege ID from the system
 
 **Optional Fields:**
 - `aadharNumber`: 12-digit number
@@ -53,18 +51,12 @@ Creates a new user account.
     "email": "user@example.com",
     "name": "John Doe",
     "phone": "9876543210",
-    "privilegeId": "507f1f77bcf86cd799439011",
     "aadharNumber": 123456789012,
     "pan": "ABCDE1234F",
     "gstNumber": "22AAAAA0000A1Z5",
     "address": "123 Main Street, City, State",
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z",
-    "privilege": {
-      "id": "507f1f77bcf86cd799439011",
-      "name": "CUSTOMER",
-      "description": "Can place orders and manage profile"
-    }
+    "updatedAt": "2024-01-01T00:00:00.000Z"
   }
 }
 ```
@@ -431,14 +423,7 @@ FRONTEND_DOMAIN="http://localhost:3000"
 
 The latest schema updates include:
 - `phone` field is now optional (`String?`)
-- `privilegeId` is optional and can be `null`
-- Users can be created without assigning privileges initially
-- Privileges can be assigned later through separate endpoints
-- The `assign-privilege` endpoint allows administrators to assign privileges to existing users
 
 ## Important Notes
 
-1. **User Registration**: Users can now register without providing a `privilegeId`. The system will set it to `null` by default.
-2. **Privilege Assignment**: Use the `/auth/assign-privilege` endpoint to assign privileges to users after registration.
-3. **Phone Field**: The phone number is now optional during registration.
-4. **Backward Compatibility**: Existing users with privileges will continue to work as before.
+1. **Phone Field**: The phone number is now optional during registration.

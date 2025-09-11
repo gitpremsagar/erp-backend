@@ -13,7 +13,6 @@ import orderRouteHandler from "./route/order.route";
 import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
 import deliveryAddressRouteHandler from "./route/deliveryAddress.route";
-import userPrivilegeRouteHandler from "./route/userPrivilege.route";
 import productTagRouteHandler from "./route/productTag.route";
 
 const app = express();
@@ -37,7 +36,6 @@ app.get("/", (req, res) => {
 
 // endpoints
 app.use("/api/auth", authRouteHandler);
-app.use("/api/user-privileges", userPrivilegeRouteHandler);
 app.use("/api/products", productRouteHandler);
 app.use("/api/categories", categoryRouteHandler);
 app.use("/api/sub-categories", subcategoryRouteHandler);

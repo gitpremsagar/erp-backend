@@ -244,7 +244,6 @@
   aadharNumber: number; // Aadhar card number
   pan: string;          // PAN number
   gstNumber: string;    // GST number
-  privilegeId: string;  // Reference to user privilege
   Order: Order[];       // Customer orders
   OrderItem: OrderItem[]; // Customer order items
 }
