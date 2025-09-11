@@ -17,6 +17,8 @@ export const createCustomer = async (req: Request, res: Response) => {
       password,
     } = req.body;
 
+    console.log(req.body);
+
     // Check if user with same email or phone already exists
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -36,15 +38,6 @@ export const createCustomer = async (req: Request, res: Response) => {
       });
     }
 
-    // Get the CUSTOMER privilege ID
-    const customerPrivilege = await prisma.userPrivilege.findFirst({
-      where: { name: "CUSTOMER" },
-    });
-
-    if (!customerPrivilege) {
-      return res.status(500).json({ message: "Customer privilege not found" });
-    }
-
     // Hash the password
     const bcrypt = require("bcrypt");
     const hashedPassword = await bcrypt.hash(
@@ -58,14 +51,11 @@ export const createCustomer = async (req: Request, res: Response) => {
         email,
         phone,
         password: hashedPassword,
-        privilegeId: customerPrivilege.id,
+        userType: "CUSTOMER",
         aadharNumber,
         pan,
         gstNumber,
         address,
-      },
-      include: {
-        privilege: true,
       },
     });
 
@@ -87,18 +77,9 @@ export const getCustomers = async (req: Request, res: Response) => {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    // Get the CUSTOMER privilege ID
-    const customerPrivilege = await prisma.userPrivilege.findFirst({
-      where: { name: "CUSTOMER" },
-    });
-
-    if (!customerPrivilege) {
-      return res.status(500).json({ message: "Customer privilege not found" });
-    }
-
     // Build where clause
     const where: any = {
-      privilegeId: customerPrivilege.id,
+      userType: "CUSTOMER",
     };
     
     if (search) {
@@ -114,9 +95,6 @@ export const getCustomers = async (req: Request, res: Response) => {
         where,
         skip,
         take: Number(limit),
-        include: {
-          privilege: true,
-        },
         orderBy: {
           createdAt: "desc",
         },
@@ -144,22 +122,13 @@ export const getCustomers = async (req: Request, res: Response) => {
 // Get customer statistics
 export const getCustomerStats = async (req: Request, res: Response) => {
   try {
-    // Get the CUSTOMER privilege ID
-    const customerPrivilege = await prisma.userPrivilege.findFirst({
-      where: { name: "CUSTOMER" },
-    });
-
-    if (!customerPrivilege) {
-      return res.status(500).json({ message: "Customer privilege not found" });
-    }
-
     const [totalCustomers, customersWithOrders] = await Promise.all([
       prisma.user.count({
-        where: { privilegeId: customerPrivilege.id },
+        where: { userType: "CUSTOMER" },
       }),
       prisma.user.count({
         where: {
-          privilegeId: customerPrivilege.id,
+          userType: "CUSTOMER",
           Order: {
             some: {},
           },
@@ -186,7 +155,6 @@ export const getCustomerById = async (req: Request, res: Response) => {
     const customer = await prisma.user.findUnique({
       where: { id },
       include: {
-        privilege: true,
         Order: {
           include: {
             OrderItem: {
@@ -207,7 +175,7 @@ export const getCustomerById = async (req: Request, res: Response) => {
     }
 
     // Check if user is actually a customer
-    if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
+    if (customer.userType !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 
@@ -227,16 +195,13 @@ export const updateCustomer = async (req: Request, res: Response) => {
     // Check if customer exists and is actually a customer
     const existingCustomer = await prisma.user.findUnique({
       where: { id },
-      include: {
-        privilege: true,
-      },
     });
 
     if (!existingCustomer) {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (!existingCustomer.privilege || existingCustomer.privilege.name !== "CUSTOMER") {
+    if (existingCustomer.userType !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 
@@ -269,9 +234,6 @@ export const updateCustomer = async (req: Request, res: Response) => {
     const updatedCustomer = await prisma.user.update({
       where: { id },
       data: updateData,
-      include: {
-        privilege: true,
-      },
     });
 
     res.json({ customer: updatedCustomer });
@@ -290,7 +252,6 @@ export const deleteCustomer = async (req: Request, res: Response) => {
     const customer = await prisma.user.findUnique({
       where: { id },
       include: {
-        privilege: true,
         Order: true,
       },
     });
@@ -299,7 +260,7 @@ export const deleteCustomer = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    if (!customer.privilege || customer.privilege.name !== "CUSTOMER") {
+    if (customer.userType !== "CUSTOMER") {
       return res.status(400).json({ message: "User is not a customer" });
     }
 

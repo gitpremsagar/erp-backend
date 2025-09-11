@@ -1,9 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { defaultPrivileges } from "./defaultPrivileges";
 import { defaultCategories } from "./defaultCategories";
-// import { defaultGroups } from "./defaultGroups"; // Removed - Group model no longer exists
 import { defaultSubCategories } from "./defaultSubCategories";
+import { defaultTags } from "./defaultTags";
 import { defaultProducts } from "./defaultProducts";
 import { defaultCustomers } from "./defaultCustomers";
 import { defaultOrders } from "./defaultOrders";
@@ -16,28 +15,70 @@ export const seedDatabase = async () => {
   try {
     console.log("🌱 Starting database seeding...");
 
-    // Seed user privileges
-    console.log("📋 Seeding user privileges...");
-    for (const privilege of defaultPrivileges) {
-      const existingPrivileges = await prisma.userPrivilege.findMany({
-        where: { name: privilege.name },
-      });
+    // 1. Create admin user first
+    console.log("👤 Creating admin user...");
+    const adminEmail = "admin@edigitalindia.com";
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
 
-      if (existingPrivileges.length === 0) {
-        await prisma.userPrivilege.create({
-          data: privilege,
-        });
-        console.log(`✅ Created privilege: ${privilege.name}`);
-      } else {
-        console.log(`⏭️  Privilege already exists: ${privilege.name}`);
-      }
+    let adminUser = existingAdmin;
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      
+      adminUser = await prisma.user.create({
+        data: {
+          email: adminEmail,
+          password: hashedPassword,
+          name: "System Administrator",
+          phone: "9999999999",
+          userType: "ADMIN",
+          address: "System Address",
+        },
+      });
+      
+      console.log("✅ Created admin user");
+      console.log("📧 Email: admin@edigitalindia.com");
+      console.log("🔑 Password: admin123");
+    } else {
+      console.log("⏭️  Admin user already exists");
     }
 
-    // Seed categories
-    console.log("📂 Seeding categories...");
+    // Create sample customer user for orders
+    console.log("👤 Creating sample customer user...");
+    const customerEmail = "customer@example.com";
+    const existingCustomer = await prisma.user.findUnique({
+      where: { email: customerEmail },
+    });
+
+    if (!existingCustomer) {
+      const hashedPassword = await bcrypt.hash("customer123", 10);
+      
+      await prisma.user.create({
+        data: {
+          email: customerEmail,
+          password: hashedPassword,
+          name: "Sample Customer",
+          phone: "8888888888",
+          userType: "CUSTOMER",
+          address: "Customer Address",
+        },
+      });
+      
+      console.log("✅ Created sample customer user");
+      console.log("📧 Email: customer@example.com");
+      console.log("🔑 Password: customer123");
+    } else {
+      console.log("⏭️  Sample customer user already exists");
+    }
+
+    // 2. Seed categories (limit to 5)
+    console.log("📂 Seeding categories (max 5)...");
     const categoryMap = new Map<string, string>(); // name -> id mapping
     
-    for (const category of defaultCategories) {
+    const categoriesToSeed = defaultCategories.slice(0, 5);
+    for (const category of categoriesToSeed) {
       const existingCategory = await prisma.category.findUnique({
         where: { name: category.name },
       });
@@ -54,33 +95,12 @@ export const seedDatabase = async () => {
       }
     }
 
-    // Seed color codes for stock alerts
-    console.log("🎨 Seeding color codes...");
-    const existingColorCode = await prisma.colorCode.findFirst();
-    
-    if (!existingColorCode) {
-      await prisma.colorCode.create({
-        data: {
-          lowStockAlertColor: "#FFA500", // Orange
-          lowStockAlertMessage: "Low Stock Alert",
-          overStockAlertColor: "#FF0000", // Red
-          overStockAlertMessage: "Over Stock Alert",
-          inStockAlertColor: "#008000", // Green
-          inStockAlertMessage: "In Stock",
-          expiryAlertColor: "#FF0000", // Red
-          expiryAlertMessage: "Expired Product",
-        },
-      });
-      console.log("✅ Created default color codes");
-    } else {
-      console.log("⏭️  Color codes already exist");
-    }
-
-    // Seed subcategories
-    console.log("📁 Seeding subcategories...");
+    // 3. Seed subcategories (limit to 5)
+    console.log("📁 Seeding subcategories (max 5)...");
     const subCategoryMap = new Map<string, string>(); // name -> id mapping
     
-    for (const subCategory of defaultSubCategories) {
+    const subCategoriesToSeed = defaultSubCategories.slice(0, 5);
+    for (const subCategory of subCategoriesToSeed) {
       const categoryId = categoryMap.get(subCategory.categoryName);
       
       if (!categoryId) {
@@ -108,234 +128,33 @@ export const seedDatabase = async () => {
       }
     }
 
-    // Create default admin user if it doesn't exist
-    console.log("👤 Checking for default admin user...");
-    const adminEmail = "admin@edigitalindia.com";
-    const existingAdmin = await prisma.user.findUnique({
-      where: { email: adminEmail },
-    });
-
-    let adminUser = existingAdmin;
-
-    if (!existingAdmin) {
-      // Get admin privilege
-      const adminPrivileges = await prisma.userPrivilege.findMany({
-        where: { name: "ADMIN" },
+    // 4. Seed tags (limit to 5)
+    console.log("🏷️  Seeding tags (max 5)...");
+    const tagMap = new Map<string, string>(); // name -> id mapping
+    
+    for (const tag of defaultTags) {
+      const existingTag = await prisma.productTag.findFirst({
+        where: { name: tag.name },
       });
 
-      if (adminPrivileges.length > 0) {
-        const adminPrivilege = adminPrivileges[0];
-        const hashedPassword = await bcrypt.hash("admin123", 10);
-        
-        adminUser = await prisma.user.create({
-          data: {
-            email: adminEmail,
-            password: hashedPassword,
-            name: "System Administrator",
-            phone: "9999999999",
-            privilegeId: adminPrivilege.id,
-            address: "System Address",
-          },
+      if (!existingTag) {
+        const createdTag = await prisma.productTag.create({
+          data: tag,
         });
-        
-        console.log("✅ Created default admin user");
-        console.log("📧 Email: admin@edigitalindia.com");
-        console.log("🔑 Password: admin123");
+        tagMap.set(tag.name, createdTag.id);
+        console.log(`✅ Created tag: ${tag.name}`);
       } else {
-        console.log("❌ Admin privilege not found, cannot create admin user");
-        return;
-      }
-    } else {
-      console.log("⏭️  Default admin user already exists");
-    }
-
-    // Seed products
-    console.log("🛍️  Seeding products...");
-    for (const product of defaultProducts) {
-      const categoryId = categoryMap.get(product.categoryName);
-      const subCategoryId = subCategoryMap.get(product.subCategoryName);
-      
-      if (!categoryId || !subCategoryId) {
-        console.log(`❌ Required references not found for product: ${product.name}`);
-        console.log(`   Category: ${product.categoryName} (${categoryId ? '✓' : '✗'})`);
-        console.log(`   Subcategory: ${product.subCategoryName} (${subCategoryId ? '✓' : '✗'})`);
-        console.log(`   Note: groupName is ignored (Group model removed)`);
-        continue;
-      }
-
-      const existingProduct = await prisma.product.findUnique({
-        where: { productCode: product.productCode },
-      });
-
-      if (!existingProduct) {
-        // Create product with new schema structure
-        const createdProduct = await prisma.product.create({
-          data: {
-            name: product.name,
-            mrp: product.mrp,
-            productCode: product.productCode,
-            description: product.description,
-            lowStockLimit: product.lowStockLimit,
-            overStockLimit: product.overStockLimit,
-            grammage: product.grammage,
-            imageUrl: product.imageUrl,
-            categoryId: categoryId,
-            subCategoryId: subCategoryId,
-          },
-        });
-
-        // Create stock entry if stock data exists
-        if (product.stock && product.stock > 0) {
-          // Use existing data from product or defaults
-          const manufacturingDate = new Date();
-          const arrivalDate = (product as any).stockEntryDate || new Date();
-          const expiryDate = (product as any).expiryDate || new Date();
-          
-          // Calculate validity months from the validity string or use default
-          let validityMonths = 1;
-          if ((product as any).validity) {
-            const validityStr = (product as any).validity.toLowerCase();
-            if (validityStr.includes('month')) {
-              const match = validityStr.match(/(\d+)\s*month/);
-              if (match) {
-                validityMonths = parseInt(match[1]);
-              }
-            }
-          }
-
-          const stock = await prisma.stock.create({
-            data: {
-              stockId: `STK-${product.productCode}-${Date.now()}`,
-              productId: createdProduct.id,
-              manufacturingDate: manufacturingDate,
-              arrivalDate: arrivalDate,
-              validityMonths: validityMonths,
-              expiryDate: expiryDate,
-              supplierName: "Default Supplier",
-              stockQuantity: product.stock,
-            },
-          });
-
-          // Create stock record for the initial stock entry
-          await prisma.stockRecord.create({
-            data: {
-              productId: createdProduct.id,
-              changeInStock: product.stock,
-              createdBy: adminUser!.id,
-              stockId: stock.stockId,
-              reason: "ARRIVAL_FROM_SUPPLIER",
-            },
-          });
-        }
-
-        // Create product tags if they exist
-        if (product.tags && product.tags.length > 0) {
-          for (const tagName of product.tags) {
-            // Find or create the tag
-            let tag = await prisma.productTag.findFirst({
-              where: { name: tagName },
-            });
-
-            if (!tag) {
-              tag = await prisma.productTag.create({
-                data: { name: tagName },
-              });
-            }
-
-            // Create the relation
-            await prisma.productTagRelation.create({
-              data: {
-                productId: createdProduct.id,
-                productTagId: tag.id,
-              },
-            });
-          }
-        }
-
-        console.log(`✅ Created product: ${product.name} (${product.productCode})`);
-      } else {
-        console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
+        tagMap.set(tag.name, existingTag.id);
+        console.log(`⏭️  Tag already exists: ${tag.name}`);
       }
     }
 
-    // Seed customers
-    console.log("👥 Seeding customers...");
-    const customerPrivilege = await prisma.userPrivilege.findFirst({
-      where: { name: "CUSTOMER" },
-    });
-
-    if (!customerPrivilege) {
-      console.log("❌ Customer privilege not found, skipping customer seeding");
-    } else {
-      for (const customer of defaultCustomers) {
-        const existingCustomer = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: customer.email },
-              { phone: customer.phone },
-              ...(customer.aadharNumber ? [{ aadharNumber: customer.aadharNumber }] : []),
-              ...(customer.pan ? [{ pan: customer.pan }] : []),
-              ...(customer.gstNumber ? [{ gstNumber: customer.gstNumber }] : []),
-            ],
-          },
-        });
-
-        if (!existingCustomer) {
-          const hashedPassword = await bcrypt.hash("customer123", 10);
-          
-          await prisma.user.create({
-            data: {
-              name: customer.name,
-              email: customer.email,
-              phone: customer.phone,
-              password: hashedPassword,
-              privilegeId: customerPrivilege.id,
-              aadharNumber: customer.aadharNumber,
-              pan: customer.pan,
-              gstNumber: customer.gstNumber,
-              address: customer.address || "Business Address",
-            },
-          });
-          console.log(`✅ Created customer: ${customer.name} (${customer.email})`);
-        } else {
-          console.log(`⏭️  Customer already exists: ${customer.name} (${customer.email})`);
-        }
-      }
-    }
-
-    // Create a sample customer user if it doesn't exist
-    console.log("👤 Checking for sample customer user...");
-    const customerEmail = "customer@example.com";
-    const existingCustomer = await prisma.user.findUnique({
-      where: { email: customerEmail },
-    });
-
-    if (!existingCustomer) {
-      const hashedPassword = await bcrypt.hash("customer123", 10);
-      
-      await prisma.user.create({
-        data: {
-          email: customerEmail,
-          password: hashedPassword,
-          name: "Sample Customer",
-          phone: "8888888888",
-          privilegeId: null, // No privilege assigned initially
-          address: "Customer Address",
-        },
-      });
-      
-      console.log("✅ Created sample customer user");
-      console.log("📧 Email: customer@example.com");
-      console.log("🔑 Password: customer123");
-    } else {
-      console.log("⏭️  Sample customer user already exists");
-    }
-
-    // Seed vehicles
-    console.log("🚛 Seeding vehicles...");
+    // 5. Seed vehicles (limit to 5)
+    console.log("🚛 Seeding vehicles (max 5)...");
     const vehicleMap = new Map<string, string>(); // vehicleNumber -> id mapping
     
-    for (const vehicle of defaultVehicles) {
+    const vehiclesToSeed = defaultVehicles.slice(0, 5);
+    for (const vehicle of vehiclesToSeed) {
       const existingVehicle = await prisma.vehicle.findUnique({
         where: { vehicleNumber: vehicle.vehicleNumber },
       });
@@ -352,12 +171,100 @@ export const seedDatabase = async () => {
       }
     }
 
-    // Seed orders
-    console.log("📦 Seeding orders...");
+    // 6. Seed products (limit to 5)
+    console.log("🛍️  Seeding products (max 5)...");
+    const productMap = new Map<string, string>(); // productCode -> id mapping
+    
+    const productsToSeed = defaultProducts.slice(0, 5);
+    for (const product of productsToSeed) {
+      const categoryId = categoryMap.get(product.categoryName);
+      const subCategoryId = subCategoryMap.get(product.subCategoryName);
+      
+      if (!categoryId || !subCategoryId) {
+        console.log(`❌ Required references not found for product: ${product.name}`);
+        continue;
+      }
+
+      const existingProduct = await prisma.product.findUnique({
+        where: { productCode: product.productCode },
+      });
+
+      if (!existingProduct) {
+        const createdProduct = await prisma.product.create({
+          data: {
+            name: product.name,
+            mrp: product.mrp,
+            productCode: product.productCode,
+            description: product.description,
+            lowStockLimit: product.lowStockLimit,
+            overStockLimit: product.overStockLimit,
+            grammage: product.grammage,
+            imageUrl: product.imageUrl,
+            categoryId: categoryId,
+            subCategoryId: subCategoryId,
+          },
+        });
+
+        productMap.set(product.productCode, createdProduct.id);
+        console.log(`✅ Created product: ${product.name} (${product.productCode})`);
+      } else {
+        productMap.set(product.productCode, existingProduct.id);
+        console.log(`⏭️  Product already exists: ${product.name} (${product.productCode})`);
+      }
+    }
+
+    // 7. Seed stock entries for products
+    console.log("📦 Seeding stock entries...");
+    for (const product of productsToSeed) {
+      const productId = productMap.get(product.productCode);
+      if (!productId) continue;
+
+      // Check if stock already exists for this product
+      const existingStock = await prisma.stock.findFirst({
+        where: { productId: productId },
+      });
+
+      if (!existingStock && product.stock && product.stock > 0) {
+        const manufacturingDate = new Date();
+        const arrivalDate = new Date();
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 6); // 6 months validity
+        
+        const stock = await prisma.stock.create({
+          data: {
+            stockId: `STK-${product.productCode}-${Date.now()}`,
+            productId: productId,
+            manufacturingDate: manufacturingDate,
+            arrivalDate: arrivalDate,
+            validityMonths: 6,
+            expiryDate: expiryDate,
+            supplierName: "Default Supplier",
+            stockQuantity: product.stock,
+          },
+        });
+
+        // Create stock record for the initial stock entry
+        await prisma.stockRecord.create({
+          data: {
+            productId: productId,
+            changeInStock: product.stock,
+            createdBy: adminUser!.id,
+            stockId: stock.stockId,
+            reason: "ARRIVAL_FROM_SUPPLIER",
+          },
+        });
+
+        console.log(`✅ Created stock entry for: ${product.name} (${product.stock} units)`);
+      }
+    }
+
+    // 8. Seed orders (limit to 5)
+    console.log("📋 Seeding orders (max 5)...");
     const orderMap = new Map<number, string>(); // orderIndex -> id mapping
     
-    for (let i = 0; i < defaultOrders.length; i++) {
-      const order = defaultOrders[i];
+    const ordersToSeed = defaultOrders.slice(0, 5);
+    for (let i = 0; i < ordersToSeed.length; i++) {
+      const order = ordersToSeed[i];
       
       // Find customer by email
       const customer = await prisma.user.findUnique({
@@ -386,9 +293,6 @@ export const seedDatabase = async () => {
       let vehicleId: string | undefined;
       if (order.vehicleNumber) {
         vehicleId = vehicleMap.get(order.vehicleNumber);
-        if (!vehicleId) {
-          console.log(`⚠️  Vehicle not found for order ${i + 1}: ${order.vehicleNumber}`);
-        }
       }
 
       // Create order
@@ -407,9 +311,10 @@ export const seedDatabase = async () => {
       console.log(`✅ Created order ${i + 1}: ${order.status} - ₹${order.totalPrice}`);
     }
 
-    // Seed order items
-    console.log("🛒 Seeding order items...");
-    for (const orderItem of defaultOrderItems) {
+    // 9. Seed order items (limit to 5)
+    console.log("🛒 Seeding order items (max 5)...");
+    const orderItemsToSeed = defaultOrderItems.slice(0, 5);
+    for (const orderItem of orderItemsToSeed) {
       const orderId = orderMap.get(orderItem.orderIndex);
       if (!orderId) {
         console.log(`❌ Order not found for order item: ${orderItem.productCode}`);
@@ -417,11 +322,8 @@ export const seedDatabase = async () => {
       }
 
       // Find product by product code
-      const product = await prisma.product.findUnique({
-        where: { productCode: orderItem.productCode },
-      });
-
-      if (!product) {
+      const productId = productMap.get(orderItem.productCode);
+      if (!productId) {
         console.log(`❌ Product not found for order item: ${orderItem.productCode}`);
         continue;
       }
@@ -441,7 +343,7 @@ export const seedDatabase = async () => {
       await prisma.orderItem.create({
         data: {
           orderId: orderId,
-          productId: product.id,
+          productId: productId,
           quantity: orderItem.quantity,
           deliveryDate: orderItem.deliveryDate,
           orderCompleted: orderItem.orderCompleted,
@@ -449,7 +351,7 @@ export const seedDatabase = async () => {
         },
       });
       
-      console.log(`✅ Created order item: ${product.name} x${orderItem.quantity} for order ${orderItem.orderIndex + 1}`);
+      console.log(`✅ Created order item: ${orderItem.productCode} x${orderItem.quantity} for order ${orderItem.orderIndex + 1}`);
     }
 
     console.log("🎉 Database seeding completed successfully!");
