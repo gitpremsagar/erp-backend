@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { SignupFormSchema } from "../libs/schemas/signupForm.schema";
 import {SigninFormSchema } from "../libs/schemas/signinForm.schema";
-import { AssignPrivilegeSchema } from "../libs/schemas/assignPrivilege.schema";
 import z from "zod";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
@@ -48,24 +47,6 @@ export const validateSigninForm = (
   next();
 };
 
-export const validateAssignPrivilege = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    AssignPrivilegeSchema.parse(req.body);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("Assign Privilege Validation error:\n", error);
-      res.status(400).json({ message: error });
-      return;
-    }
-    res.status(500).json({ message: "Internal server error" });
-    return;
-  }
-  next();
-};
 
 export const validateAccessToken = (
   req: AuthenticatedRequest,

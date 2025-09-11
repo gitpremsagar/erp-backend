@@ -32,29 +32,19 @@ model User {
   password        String
   userType        UserType          @default(CUSTOMER)
   phone           String?
-  privilegeId     String?           @db.ObjectId
   aadharNumber    Int?
   pan             String?
   gstNumber       String?
   address         String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  privilege       UserPrivilege?    @relation(fields: [privilegeId], references: [id])
   StockRecord     StockRecord[]
   Order           Order[]
   DeliveryAddress DeliveryAddress[]
   OrderItem       OrderItem[]
-  Product         Product[]
 }
 
-model UserPrivilege {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  User        User[]
-}
+
 
 //========================PRODUCT CENTRIC MODELS========================
 
@@ -67,7 +57,6 @@ model Product {
   overStockLimit     Int                  @default(0)
   categoryId         String               @db.ObjectId
   subCategoryId      String               @db.ObjectId
-  creatorId          String               @db.ObjectId
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   description        String?
@@ -79,7 +68,6 @@ model Product {
   StockRecord        StockRecord[]
   Stock              Stock[]
   ProductTagRelation ProductTagRelation[]
-  User               User                 @relation(fields: [creatorId], references: [id])
 }
 
 model ProductTag {
@@ -187,9 +175,9 @@ model Order {
   vehicle           Vehicle?         @relation(fields: [vehicleId], references: [id])
   deliveryAddressId String?          @db.ObjectId
   deliveryAddress   DeliveryAddress? @relation(fields: [deliveryAddressId], references: [id])
-  OrderItem         OrderItem[]
   originalOrderId   String?          @db.ObjectId
   stockRecordId     String?          @db.ObjectId
+  OrderItem         OrderItem[]
   stockRecord       StockRecord?     @relation(fields: [stockRecordId], references: [id])
 }
 

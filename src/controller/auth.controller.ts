@@ -42,7 +42,6 @@ export const signup = async (req: Request, res: Response) => {
         password: hashedPassword,
         name,
         phone,
-        privilegeId: null,
         aadharNumber: aadharNumber || null,
         pan: pan || null,
         gstNumber: gstNumber || null,
@@ -158,9 +157,6 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: {
-        privilege: true,
-      },
     });
     if (!user) {
       return res.status(401).json({ message: "Invalid refresh token" });
@@ -214,9 +210,6 @@ export const decodeAccessToken = async (
     // Get fresh user data from database
     const user = await prisma.user.findUnique({
       where: { id: (req.user as any).id },
-      include: {
-        privilege: true,
-      },
     });
 
     if (!user) {
@@ -242,9 +235,6 @@ export const getUserProfile = async (
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        privilege: true,
-      },
     });
 
     if (!user) {
@@ -261,52 +251,6 @@ export const getUserProfile = async (
   }
 };
 
-export const assignPrivilege = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    const { userId, privilegeId } = req.body;
-
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if privilege exists
-    const privilege = await prisma.userPrivilege.findUnique({
-      where: { id: privilegeId },
-    });
-
-    if (!privilege) {
-      return res.status(404).json({ message: "Privilege not found" });
-    }
-
-    // Update user with new privilege
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { privilegeId },
-      include: {
-        privilege: true,
-      },
-    });
-
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = updatedUser;
-
-    res.json({
-      message: "Privilege assigned successfully",
-      user: userWithoutPassword,
-    });
-  } catch (error) {
-    console.error("Error assigning privilege:\n", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;

@@ -69,14 +69,12 @@ export const createProduct = async (req: Request, res: Response) => {
           overStockLimit: overStockLimit || 0,
           categoryId,
           subCategoryId,
-          creatorId: userId,
           grammage,
           imageUrl,
         },
         include: {
           Category: true,
           SubCategory: true,
-          User: true,
         },
       });
 
@@ -155,7 +153,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 // Get all products with pagination and filtering
 export const getProducts = async (req: Request, res: Response) => {
-  // console.log("getProducts");
+  console.log("getProducts");
   try {
     const {
       page = 1,
@@ -232,12 +230,6 @@ export const getProducts = async (req: Request, res: Response) => {
               name: true,
             },
           },
-          User: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
           ProductTagRelation: {            
             include: {
               ProductTag: {
@@ -287,23 +279,19 @@ export const getProductById = async (req: Request, res: Response) => {
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: {
-        Category: true,
-        SubCategory: true,
-        User: true,
-        ProductTagRelation: {
-          include: {
-            ProductTag: true,
+        include: {
+          Category: true,
+          SubCategory: true,
+          ProductTagRelation: {
+            include: {
+              ProductTag: true,
+            },
+          },
+          Stock: true,
+          StockRecord: {
+            orderBy: { createdAt: "desc" },
           },
         },
-        Stock: true,
-        StockRecord: {
-          include: {
-            User: true,
-          },
-          orderBy: { createdAt: "desc" },
-        },
-      },
     });
 
     if (!product) {
@@ -407,7 +395,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       include: {
         Category: true,
         SubCategory: true,
-        User: true,
         ProductTagRelation: {
           include: {
             ProductTag: true,

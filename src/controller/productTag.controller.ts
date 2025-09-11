@@ -56,38 +56,6 @@ export const getProductTags = async (req: Request, res: Response) => {
         where,
         skip,
         take: limitNum,
-        include: {
-          ProductTagRelation: {
-            include: {
-              Product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  mrp: true,
-                  description: true,
-                  Category: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
-                  },
-                  SubCategory: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          _count: {
-            select: {
-              ProductTagRelation: true,
-            },
-          },
-        },
         orderBy: { createdAt: "desc" },
       }),
       prisma.productTag.count({ where }),
