@@ -181,7 +181,6 @@ export const seedDatabase = async () => {
             imageUrl: product.imageUrl,
             categoryId: categoryId,
             subCategoryId: subCategoryId,
-            creatorId: adminUser!.id,
           },
         });
 
