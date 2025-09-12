@@ -178,22 +178,17 @@ export const deleteProductTag = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product tag not found" });
     }
 
-    // Check if tag is used in any product relations
-    const tagRelations = await prisma.productTagRelation.findMany({
+    // Delete all product tag relations first
+    await prisma.productTagRelation.deleteMany({
       where: { productTagId: id },
     });
 
-    if (tagRelations.length > 0) {
-      return res.status(400).json({
-        message: "Cannot delete product tag as it is associated with existing products",
-      });
-    }
-
+    // Then delete the product tag
     await prisma.productTag.delete({
       where: { id },
     });
 
-    res.json({ message: "Product tag deleted successfully" });
+    res.json({ message: "Product tag and its relationships deleted successfully" });
   } catch (error) {
     console.error("Error deleting product tag:\n", error);
     res.status(500).json({ message: "Internal server error" });
