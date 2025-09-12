@@ -103,7 +103,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 // Get all products with pagination and filtering
 export const getProducts = async (req: Request, res: Response) => {
-  console.log("getProducts");
+  // console.log("getProducts");
   try {
     const {
       page = 1,
@@ -376,12 +376,19 @@ export const deleteProduct = async (req: Request, res: Response) => {
     });
 
     if (orderItems.length > 0) {
+      console.log("orderItems", orderItems, "\n cannot delete product as it is associated with existing orders");
       return res.status(400).json({
         message:
           "Cannot delete product as it is associated with existing orders",
       });
     }
 
+    // Delete related ProductTagRelation records first
+    await prisma.productTagRelation.deleteMany({
+      where: { productId: id }
+    });
+
+    // Now delete the product
     await prisma.product.delete({
       where: { id },
     });
