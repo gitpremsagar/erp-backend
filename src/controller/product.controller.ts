@@ -10,7 +10,6 @@ export const createProduct = async (req: Request, res: Response) => {
       name,
       mrp,
       productCode,
-      description,
       lowStockLimit,
       overStockLimit,
       categoryId,
@@ -18,21 +17,7 @@ export const createProduct = async (req: Request, res: Response) => {
       grammage,
       imageUrl,
       tags,
-      // Stock related fields
-      stockId,
-      manufacturingDate,
-      arrivalDate,
-      validityMonths,
-      supplierName,
-      supplierId,
-      stockQuantity,
     } = req.body;
-
-    // Get user ID from request (assuming it's set by auth middleware)
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
 
     // Check if product code already exists
     const existingProduct = await prisma.product.findUnique({
@@ -56,7 +41,7 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Sub-category not found" });
     }
 
-    // Create product, stock, and tag relations in a transaction
+    // Create product and tag relations in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create the product
       const product = await tx.product.create({
@@ -64,7 +49,6 @@ export const createProduct = async (req: Request, res: Response) => {
           name,
           mrp,
           productCode,
-          description,
           lowStockLimit: lowStockLimit || 0,
           overStockLimit: overStockLimit || 0,
           categoryId,
@@ -78,37 +62,6 @@ export const createProduct = async (req: Request, res: Response) => {
         },
       });
 
-      // Create stock entry if stock data is provided
-      let stock = null;
-      if (stockId && stockQuantity !== undefined) {
-        const expiryDate = new Date(manufacturingDate);
-        expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 10));
-
-        stock = await tx.stock.create({
-          data: {
-            stockId,
-            productId: product.id,
-            manufacturingDate: new Date(manufacturingDate),
-            arrivalDate: new Date(arrivalDate),
-            validityMonths: validityMonths || 1,
-            expiryDate,
-            supplierName,
-            supplierId,
-            stockQuantity,
-          },
-        });
-
-        // Create stock record for the initial stock entry
-        await tx.stockRecord.create({
-          data: {
-            productId: product.id,
-            changeInStock: stockQuantity,
-            createdBy: userId,
-            stockId: stock.stockId,
-            reason: "ARRIVAL_FROM_SUPPLIER",
-          },
-        });
-      }
 
       // Create product tag relations if tags are provided
       const tagRelations = [];
@@ -137,12 +90,11 @@ export const createProduct = async (req: Request, res: Response) => {
         }
       }
 
-      return { product, stock, tagRelations };
+      return { product, tagRelations };
     });
 
     res.status(201).json({
       product: result.product,
-      stock: result.stock,
       tagRelations: result.tagRelations,
     });
   } catch (error) {
@@ -179,7 +131,6 @@ export const getProducts = async (req: Request, res: Response) => {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
         { productCode: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -400,7 +351,6 @@ export const updateProduct = async (req: Request, res: Response) => {
             ProductTag: true,
           },
         },
-        Stock: true,
       },
     });
 
@@ -458,15 +408,11 @@ export const getProductStats = async (req: Request, res: Response) => {
           mrp: true,
         },
       }),
-      // Count products with low stock (stock quantity <= lowStockLimit)
+      // Count products with low stock (based on lowStockLimit field)
       prisma.product.count({
         where: {
-          Stock: {
-            some: {
-              stockQuantity: {
-                lte: 10, // Default low stock threshold
-              },
-            },
+          lowStockLimit: {
+            gt: 0,
           },
         },
       }),

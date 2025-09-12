@@ -15,11 +15,6 @@ export const CreateProductSchema = z.object({
     .min(1, "Product code is required")
     .max(50, "Product code must be at most 50 characters long")
     .trim(),
-  description: z
-    .string()
-    .min(1, "Description is required")
-    .max(1000, "Description must be at most 1000 characters long")
-    .trim(),
   lowStockLimit: z
     .number()
     .int("Low stock limit must be an integer")

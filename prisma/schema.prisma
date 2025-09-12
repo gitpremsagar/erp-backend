@@ -59,7 +59,6 @@ model Product {
   subCategoryId      String               @db.ObjectId
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-  description        String?
   grammage           Int?
   imageUrl           String?
   SubCategory        SubCategory          @relation(fields: [subCategoryId], references: [id])
