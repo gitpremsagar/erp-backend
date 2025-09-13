@@ -1,0 +1,543 @@
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// Create a new stock entry
+export const createStock = async (req: Request, res: Response) => {
+  try {
+    const {
+      stockId,
+      productId,
+      manufacturingDate,
+      arrivalDate,
+      validityMonths,
+      supplierName,
+      supplierId,
+      stockQuantity,
+      isArchived,
+    } = req.body;
+
+    // Check if stock ID already exists
+    const existingStock = await prisma.stock.findUnique({
+      where: { stockId },
+    });
+
+    if (existingStock) {
+      return res.status(409).json({ message: "Stock ID already exists" });
+    }
+
+    // Verify that product exists
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Calculate expiry date
+    const manufacturingDateObj = new Date(manufacturingDate);
+    const expiryDate = new Date(manufacturingDateObj);
+    expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 10));
+
+    // Create stock entry
+    const stock = await prisma.stock.create({
+      data: {
+        stockId,
+        productId,
+        manufacturingDate: manufacturingDateObj,
+        arrivalDate: new Date(arrivalDate),
+        validityMonths: validityMonths || 10,
+        expiryDate,
+        supplierName,
+        supplierId,
+        stockQuantity: stockQuantity || 0,
+        isArchived: isArchived || false,
+      },
+      include: {
+        product: {
+          include: {
+            Category: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({ stock });
+  } catch (error) {
+    console.error("Error creating stock:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all stock entries with pagination and filtering
+export const getStocks = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      productId,
+      supplierName,
+      isArchived,
+      expired,
+      lowStock,
+    } = req.query as any;
+
+    // Convert string values to numbers
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { stockId: { contains: search, mode: "insensitive" } },
+        { supplierName: { contains: search, mode: "insensitive" } },
+        { product: { name: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    if (productId) {
+      where.productId = productId;
+    }
+
+    if (supplierName) {
+      where.supplierName = { contains: supplierName, mode: "insensitive" };
+    }
+
+    if (isArchived !== undefined) {
+      where.isArchived = isArchived;
+    }
+
+    if (expired !== undefined) {
+      if (expired) {
+        where.expiryDate = { lt: new Date() };
+      } else {
+        where.expiryDate = { gte: new Date() };
+      }
+    }
+
+    if (lowStock !== undefined) {
+      if (lowStock) {
+        where.AND = [
+          { stockQuantity: { gt: 0 } },
+          {
+            product: {
+              lowStockLimit: { gt: 0 },
+            },
+          },
+        ];
+        // This is a simplified check - you might want to implement more sophisticated logic
+        where.stockQuantity = { lte: 10 }; // Example threshold
+      }
+    }
+
+    const [stocks, total] = await Promise.all([
+      prisma.stock.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          product: {
+            include: {
+              Category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          StockRecord: {
+            orderBy: { createdAt: "desc" },
+            take: 5, // Get last 5 stock records
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.stock.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      stocks,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching stocks:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get a single stock entry by ID
+export const getStockById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const stock = await prisma.stock.findUnique({
+      where: { id },
+      include: {
+        product: {
+          include: {
+            Category: true,
+            ProductTagRelation: {
+              include: {
+                ProductTag: true,
+              },
+            },
+          },
+        },
+        StockRecord: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            User: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!stock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    res.json({ stock });
+  } catch (error) {
+    console.error("Error fetching stock:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get stock by stockId
+export const getStockByStockId = async (req: Request, res: Response) => {
+  try {
+    const { stockId } = req.params;
+
+    const stock = await prisma.stock.findUnique({
+      where: { stockId },
+      include: {
+        product: {
+          include: {
+            Category: true,
+            ProductTagRelation: {
+              include: {
+                ProductTag: true,
+              },
+            },
+          },
+        },
+        StockRecord: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            User: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!stock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    res.json({ stock });
+  } catch (error) {
+    console.error("Error fetching stock:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Update a stock entry
+export const updateStock = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Check if stock exists
+    const existingStock = await prisma.stock.findUnique({
+      where: { id },
+    });
+
+    if (!existingStock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    // Verify that product exists if it's being updated
+    if (updateData.productId) {
+      const product = await prisma.product.findUnique({
+        where: { id: updateData.productId },
+      });
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+    }
+
+    // Recalculate expiry date if manufacturing date or validity months are updated
+    if (updateData.manufacturingDate || updateData.validityMonths) {
+      const manufacturingDate = updateData.manufacturingDate 
+        ? new Date(updateData.manufacturingDate)
+        : existingStock.manufacturingDate;
+      const validityMonths = updateData.validityMonths || existingStock.validityMonths;
+      
+      const expiryDate = new Date(manufacturingDate);
+      expiryDate.setMonth(expiryDate.getMonth() + validityMonths);
+      
+      updateData.expiryDate = expiryDate;
+    }
+
+    // Convert date strings to Date objects
+    if (updateData.manufacturingDate) {
+      updateData.manufacturingDate = new Date(updateData.manufacturingDate);
+    }
+    if (updateData.arrivalDate) {
+      updateData.arrivalDate = new Date(updateData.arrivalDate);
+    }
+
+    const stock = await prisma.stock.update({
+      where: { id },
+      data: updateData,
+      include: {
+        product: {
+          include: {
+            Category: true,
+          },
+        },
+      },
+    });
+
+    res.json({ stock });
+  } catch (error) {
+    console.error("Error updating stock:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Delete a stock entry
+export const deleteStock = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Check if stock exists
+    const existingStock = await prisma.stock.findUnique({
+      where: { id },
+    });
+
+    if (!existingStock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    // Check if stock is used in any stock records
+    const stockRecords = await prisma.stockRecord.findMany({
+      where: { stockId: existingStock.stockId },
+    });
+
+    if (stockRecords.length > 0) {
+      return res.status(400).json({
+        message: "Cannot delete stock as it has associated stock records",
+      });
+    }
+
+    // Delete the stock
+    await prisma.stock.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Stock deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting stock:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Archive/Unarchive stock
+export const toggleStockArchive = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { isArchived } = req.body;
+
+    // Check if stock exists
+    const existingStock = await prisma.stock.findUnique({
+      where: { id },
+    });
+
+    if (!existingStock) {
+      return res.status(404).json({ message: "Stock not found" });
+    }
+
+    const stock = await prisma.stock.update({
+      where: { id },
+      data: { isArchived },
+      include: {
+        product: {
+          include: {
+            Category: true,
+          },
+        },
+      },
+    });
+
+    res.json({ stock });
+  } catch (error) {
+    console.error("Error toggling stock archive:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get stock statistics
+export const getStockStats = async (req: Request, res: Response) => {
+  try {
+    const [
+      totalStocks,
+      totalValue,
+      expiredStocks,
+      lowStockCount,
+      archivedStocks,
+    ] = await Promise.all([
+      prisma.stock.count(),
+      prisma.stock.aggregate({
+        _sum: {
+          stockQuantity: true,
+        },
+      }),
+      prisma.stock.count({
+        where: {
+          expiryDate: { lt: new Date() },
+        },
+      }),
+      prisma.stock.count({
+        where: {
+          stockQuantity: { lte: 10 }, // Example threshold
+        },
+      }),
+      prisma.stock.count({
+        where: {
+          isArchived: true,
+        },
+      }),
+    ]);
+
+    // Calculate total inventory value
+    const stocksWithProducts = await prisma.stock.findMany({
+      include: {
+        product: {
+          select: {
+            mrp: true,
+          },
+        },
+      },
+    });
+
+    const totalInventoryValue = stocksWithProducts.reduce(
+      (sum, stock) => sum + (stock.product.mrp * stock.stockQuantity),
+      0
+    );
+
+    res.json({
+      stats: {
+        totalStocks,
+        totalQuantity: totalValue._sum.stockQuantity || 0,
+        totalInventoryValue,
+        expiredStocks,
+        lowStockCount,
+        archivedStocks,
+        activeStocks: totalStocks - archivedStocks,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching stock stats:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get stock alerts (expired, low stock, etc.)
+export const getStockAlerts = async (req: Request, res: Response) => {
+  try {
+    const [expiredStocks, lowStockItems, expiringSoon] = await Promise.all([
+      // Expired stocks
+      prisma.stock.findMany({
+        where: {
+          expiryDate: { lt: new Date() },
+          isArchived: false,
+        },
+        include: {
+          product: {
+            select: {
+              name: true,
+              productCode: true,
+            },
+          },
+        },
+        orderBy: { expiryDate: "asc" },
+      }),
+      // Low stock items
+      prisma.stock.findMany({
+        where: {
+          stockQuantity: { lte: 10 }, // Example threshold
+          isArchived: false,
+        },
+        include: {
+          product: {
+            select: {
+              name: true,
+              productCode: true,
+              lowStockLimit: true,
+            },
+          },
+        },
+        orderBy: { stockQuantity: "asc" },
+      }),
+      // Expiring soon (within 30 days)
+      prisma.stock.findMany({
+        where: {
+          expiryDate: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          },
+          isArchived: false,
+        },
+        include: {
+          product: {
+            select: {
+              name: true,
+              productCode: true,
+            },
+          },
+        },
+        orderBy: { expiryDate: "asc" },
+      }),
+    ]);
+
+    res.json({
+      alerts: {
+        expired: expiredStocks,
+        lowStock: lowStockItems,
+        expiringSoon,
+        totalAlerts: expiredStocks.length + lowStockItems.length + expiringSoon.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching stock alerts:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

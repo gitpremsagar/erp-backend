@@ -7,13 +7,13 @@ import cors from "cors";
 import authRouteHandler from "./route/auth.route";
 import productRouteHandler from "./route/product.route";
 import categoryRouteHandler from "./route/category.route";
-import subcategoryRouteHandler from "./route/subcategory.route";
 import vehicleRouteHandler from "./route/vehicle.route";
 import orderRouteHandler from "./route/order.route";
 import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
 import deliveryAddressRouteHandler from "./route/deliveryAddress.route";
 import productTagRouteHandler from "./route/productTag.route";
+import stockRouteHandler from "./route/stock.route";
 
 const app = express();
 
@@ -38,13 +38,13 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouteHandler);
 app.use("/api/products", productRouteHandler);
 app.use("/api/categories", categoryRouteHandler);
-app.use("/api/sub-categories", subcategoryRouteHandler);
 app.use("/api/vehicles", vehicleRouteHandler);
 app.use("/api/orders", orderRouteHandler);
 app.use("/api/order-items", orderItemRouteHandler);
 app.use("/api/customers", customerRouteHandler);
 app.use("/api/delivery-addresses", deliveryAddressRouteHandler);
 app.use("/api/product-tags", productTagRouteHandler);
+app.use("/api/stocks", stockRouteHandler);
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
