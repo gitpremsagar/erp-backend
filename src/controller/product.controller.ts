@@ -16,7 +16,7 @@ export const createProduct = async (req: Request, res: Response) => {
       subCategoryId,
       grammage,
       imageUrl,
-      tags,
+      tagIds,
     } = req.body;
 
     // Check if product code already exists
@@ -63,26 +63,24 @@ export const createProduct = async (req: Request, res: Response) => {
       });
 
 
-      // Create product tag relations if tags are provided
+      // Create product tag relations if tagIds are provided
       const tagRelations = [];
-      if (tags && tags.length > 0) {
-        for (const tagName of tags) {
-          // Find or create the tag
-          let tag = await tx.productTag.findFirst({
-            where: { name: tagName },
-          });
+      if (tagIds && tagIds.length > 0) {
+        // Verify that all tag IDs exist
+        const existingTags = await tx.productTag.findMany({
+          where: { id: { in: tagIds } },
+        });
 
-          if (!tag) {
-            tag = await tx.productTag.create({
-              data: { name: tagName },
-            });
-          }
+        if (existingTags.length !== tagIds.length) {
+          throw new Error("One or more tag IDs do not exist");
+        }
 
-          // Create the relation
+        // Create the relations
+        for (const tagId of tagIds) {
           const relation = await tx.productTagRelation.create({
             data: {
               productId: product.id,
-              productTagId: tag.id,
+              productTagId: tagId,
             },
           });
 
@@ -105,7 +103,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 // Get all products with pagination and filtering
 export const getProducts = async (req: Request, res: Response) => {
-  console.log("getProducts");
+  // console.log("getProducts");
   try {
     const {
       page = 1,
@@ -306,38 +304,35 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     // Handle tag updates if provided
     let tagRelations = [];
-    if (updateData.tags) {
+    if (updateData.tagIds) {
       // Remove existing tag relations
       await prisma.productTagRelation.deleteMany({
         where: { productId: id },
       });
 
+      // Verify that all tag IDs exist
+      const existingTags = await prisma.productTag.findMany({
+        where: { id: { in: updateData.tagIds } },
+      });
+
+      if (existingTags.length !== updateData.tagIds.length) {
+        return res.status(400).json({ message: "One or more tag IDs do not exist" });
+      }
+
       // Create new tag relations
-      for (const tagName of updateData.tags) {
-        // Find or create the tag
-        let tag = await prisma.productTag.findFirst({
-          where: { name: tagName },
-        });
-
-        if (!tag) {
-          tag = await prisma.productTag.create({
-            data: { name: tagName },
-          });
-        }
-
-        // Create the relation
+      for (const tagId of updateData.tagIds) {
         const relation = await prisma.productTagRelation.create({
           data: {
             productId: id,
-            productTagId: tag.id,
+            productTagId: tagId,
           },
         });
 
         tagRelations.push(relation);
       }
 
-      // Remove tags from updateData as it's handled separately
-      delete updateData.tags;
+      // Remove tagIds from updateData as it's handled separately
+      delete updateData.tagIds;
     }
 
     const product = await prisma.product.update({
@@ -381,12 +376,19 @@ export const deleteProduct = async (req: Request, res: Response) => {
     });
 
     if (orderItems.length > 0) {
+      console.log("orderItems", orderItems, "\n cannot delete product as it is associated with existing orders");
       return res.status(400).json({
         message:
           "Cannot delete product as it is associated with existing orders",
       });
     }
 
+    // Delete related ProductTagRelation records first
+    await prisma.productTagRelation.deleteMany({
+      where: { productId: id }
+    });
+
+    // Now delete the product
     await prisma.product.delete({
       where: { id },
     });

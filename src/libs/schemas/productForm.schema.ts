@@ -43,7 +43,7 @@ export const CreateProductSchema = z.object({
     .url("Invalid image URL format")
     .trim()
     .optional(),
-  tags: z.array(z.string().trim()).optional(),
+  tagIds: z.array(z.string().min(24, "Invalid tag ID").max(24, "Invalid tag ID")).optional(),
   // Stock related fields (optional for product creation)
   stockId: z
     .string()
