@@ -13,7 +13,6 @@ export const createProduct = async (req: Request, res: Response) => {
       lowStockLimit,
       overStockLimit,
       categoryId,
-      subCategoryId,
       grammage,
       imageUrl,
       tagIds,
@@ -28,17 +27,11 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Product code already exists" });
     }
 
-    // Verify that category and subcategory exist
-    const [category, subCategory] = await Promise.all([
-      prisma.category.findUnique({ where: { id: categoryId } }),
-      prisma.subCategory.findUnique({ where: { id: subCategoryId } }),
-    ]);
+    // Verify that category exists
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
-    }
-    if (!subCategory) {
-      return res.status(404).json({ message: "Sub-category not found" });
     }
 
     // Create product and tag relations in a transaction
@@ -52,13 +45,11 @@ export const createProduct = async (req: Request, res: Response) => {
           lowStockLimit: lowStockLimit || 0,
           overStockLimit: overStockLimit || 0,
           categoryId,
-          subCategoryId,
           grammage,
           imageUrl,
         },
         include: {
           Category: true,
-          SubCategory: true,
         },
       });
 
@@ -110,7 +101,6 @@ export const getProducts = async (req: Request, res: Response) => {
       limit = 10,
       search,
       categoryId,
-      subCategoryId,
       minPrice,
       maxPrice,
       productTagIds,
@@ -134,10 +124,6 @@ export const getProducts = async (req: Request, res: Response) => {
 
     if (categoryId) {
       where.categoryId = categoryId;
-    }
-
-    if (subCategoryId) {
-      where.subCategoryId = subCategoryId;
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -168,12 +154,6 @@ export const getProducts = async (req: Request, res: Response) => {
         take: limitNum,
         include: {
           Category: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          SubCategory: {
             select: {
               id: true,
               name: true,
@@ -230,7 +210,6 @@ export const getProductById = async (req: Request, res: Response) => {
       where: { id },
         include: {
           Category: true,
-          SubCategory: true,
           ProductTagRelation: {
             include: {
               ProductTag: true,
@@ -283,22 +262,13 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // Verify that category and subcategory exist if they're being updated
+    // Verify that category exists if it's being updated
     if (updateData.categoryId) {
       const category = await prisma.category.findUnique({
         where: { id: updateData.categoryId },
       });
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
-      }
-    }
-
-    if (updateData.subCategoryId) {
-      const subCategory = await prisma.subCategory.findUnique({
-        where: { id: updateData.subCategoryId },
-      });
-      if (!subCategory) {
-        return res.status(404).json({ message: "Sub-category not found" });
       }
     }
 
@@ -340,7 +310,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       data: updateData,
       include: {
         Category: true,
-        SubCategory: true,
         ProductTagRelation: {
           include: {
             ProductTag: true,

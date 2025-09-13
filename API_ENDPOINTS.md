@@ -34,9 +34,7 @@ http://localhost:3008/api
   "tags": ["electronics", "gadgets"],
   "imageUrl": "https://example.com/image.jpg",
   "categoryId": "507f1f77bcf86cd799439011",
-  "groupId": "507f1f77bcf86cd799439012",
-  "subCategoryId": "507f1f77bcf86cd799439013",
-  "grammage": "500g"
+  "grammage": 500
 }
 ```
 
@@ -55,14 +53,10 @@ http://localhost:3008/api
     "tags": ["electronics", "gadgets"],
     "imageUrl": "https://example.com/image.jpg",
     "categoryId": "507f1f77bcf86cd799439011",
-    "groupId": "507f1f77bcf86cd799439012",
-    "subCategoryId": "507f1f77bcf86cd799439013",
-    "grammage": "500g",
+    "grammage": 500,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",
     "category": { ... },
-    "group": { ... },
-    "subCategory": { ... }
   }
 }
 ```
@@ -75,8 +69,6 @@ http://localhost:3008/api
 - `limit` (optional): Items per page (default: 10)
 - `search` (optional): Search in name, productCode, or description
 - `categoryId` (optional): Filter by category
-- `groupId` (optional): Filter by group
-- `subCategoryId` (optional): Filter by subcategory
 - `productTagIds` (optional): Filter by product tag(s). Can be a single tag ID or comma-separated multiple tag IDs
 - `minPrice` (optional): Minimum price filter
 - `maxPrice` (optional): Maximum price filter
@@ -119,14 +111,10 @@ GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000&productTa
     "tags": ["electronics", "gadgets"],
     "imageUrl": "https://example.com/image.jpg",
     "categoryId": "507f1f77bcf86cd799439011",
-    "groupId": "507f1f77bcf86cd799439012",
-    "subCategoryId": "507f1f77bcf86cd799439013",
-    "grammage": "500g",
+    "grammage": 500,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",
     "category": { ... },
-    "group": { ... },
-    "subCategory": { ... }
   }
 }
 ```
@@ -197,33 +185,6 @@ GET /products?page=1&limit=10&search=laptop&minPrice=500&maxPrice=2000&productTa
 
 ---
 
-## SubCategory Endpoints
-
-### 1. Create SubCategory
-**POST** `/categories/subcategories`
-
-**Request Body:**
-```json
-{
-  "name": "Laptops",
-  "description": "Laptop computers and accessories"
-}
-```
-
-### 2. Get All SubCategories
-**GET** `/categories/subcategories`
-
-### 3. Get SubCategory by ID
-**GET** `/categories/subcategories/:id`
-
-### 4. Update SubCategory
-**PUT** `/categories/subcategories/:id`
-
-### 5. Delete SubCategory
-**DELETE** `/categories/subcategories/:id`
-
----
-
 ## Error Responses
 
 ### 400 Bad Request
@@ -283,23 +244,7 @@ curl -X POST http://localhost:3008/api/categories/categories \
   -d '{"name": "Electronics", "description": "Electronic products"}'
 ```
 
-2. **Create Group:**
-```bash
-curl -X POST http://localhost:3008/api/categories/groups \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Premium", "description": "Premium quality products"}'
-```
-
-3. **Create SubCategory:**
-```bash
-curl -X POST http://localhost:3008/api/categories/subcategories \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Laptops", "description": "Laptop computers"}'
-```
-
-4. **Create Product:**
+2. **Create Product:**
 ```bash
 curl -X POST http://localhost:3008/api/products \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -315,9 +260,7 @@ curl -X POST http://localhost:3008/api/products \
     "tags": ["laptop", "apple", "premium"],
     "imageUrl": "https://example.com/macbook.jpg",
     "categoryId": "CATEGORY_ID",
-    "groupId": "GROUP_ID",
-    "subCategoryId": "SUBCATEGORY_ID",
-    "grammage": "1.4kg"
+    "grammage": 1400
   }'
 ```
 

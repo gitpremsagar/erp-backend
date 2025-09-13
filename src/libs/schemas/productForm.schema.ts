@@ -29,10 +29,6 @@ export const CreateProductSchema = z.object({
     .string()
     .min(24, "Invalid category ID")
     .max(24, "Invalid category ID"),
-  subCategoryId: z
-    .string()
-    .min(24, "Invalid sub-category ID")
-    .max(24, "Invalid sub-category ID"),
   grammage: z
     .number()
     .int("Grammage must be an integer")
@@ -86,7 +82,6 @@ export const ProductQuerySchema = z.object({
   limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
   search: z.string().optional(),
   categoryId: z.string().optional(),
-  subCategoryId: z.string().optional(),
   minPrice: z.string().optional().transform(val => val ? parseInt(val) : undefined),
   maxPrice: z.string().optional().transform(val => val ? parseInt(val) : undefined),
 });
