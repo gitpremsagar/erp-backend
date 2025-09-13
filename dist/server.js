@@ -10,7 +10,6 @@ const cors_1 = __importDefault(require("cors"));
 const auth_route_1 = __importDefault(require("./route/auth.route"));
 const product_route_1 = __importDefault(require("./route/product.route"));
 const category_route_1 = __importDefault(require("./route/category.route"));
-const subcategory_route_1 = __importDefault(require("./route/subcategory.route"));
 const vehicle_route_1 = __importDefault(require("./route/vehicle.route"));
 const order_route_1 = __importDefault(require("./route/order.route"));
 const orderItem_route_1 = __importDefault(require("./route/orderItem.route"));
@@ -35,7 +34,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", auth_route_1.default);
 app.use("/api/products", product_route_1.default);
 app.use("/api/categories", category_route_1.default);
-app.use("/api/sub-categories", subcategory_route_1.default);
 app.use("/api/vehicles", vehicle_route_1.default);
 app.use("/api/orders", order_route_1.default);
 app.use("/api/order-items", orderItem_route_1.default);

@@ -17,11 +17,6 @@ exports.CreateProductSchema = zod_1.z.object({
         .min(1, "Product code is required")
         .max(50, "Product code must be at most 50 characters long")
         .trim(),
-    description: zod_1.z
-        .string()
-        .min(1, "Description is required")
-        .max(1000, "Description must be at most 1000 characters long")
-        .trim(),
     lowStockLimit: zod_1.z
         .number()
         .int("Low stock limit must be an integer")
@@ -36,10 +31,6 @@ exports.CreateProductSchema = zod_1.z.object({
         .string()
         .min(24, "Invalid category ID")
         .max(24, "Invalid category ID"),
-    subCategoryId: zod_1.z
-        .string()
-        .min(24, "Invalid sub-category ID")
-        .max(24, "Invalid sub-category ID"),
     grammage: zod_1.z
         .number()
         .int("Grammage must be an integer")
@@ -50,7 +41,7 @@ exports.CreateProductSchema = zod_1.z.object({
         .url("Invalid image URL format")
         .trim()
         .optional(),
-    tags: zod_1.z.array(zod_1.z.string().trim()).optional(),
+    tagIds: zod_1.z.array(zod_1.z.string().min(24, "Invalid tag ID").max(24, "Invalid tag ID")).optional(),
     // Stock related fields (optional for product creation)
     stockId: zod_1.z
         .string()
@@ -91,7 +82,6 @@ exports.ProductQuerySchema = zod_1.z.object({
     limit: zod_1.z.string().optional().transform(val => val ? parseInt(val) : 10),
     search: zod_1.z.string().optional(),
     categoryId: zod_1.z.string().optional(),
-    subCategoryId: zod_1.z.string().optional(),
     minPrice: zod_1.z.string().optional().transform(val => val ? parseInt(val) : undefined),
     maxPrice: zod_1.z.string().optional().transform(val => val ? parseInt(val) : undefined),
 });

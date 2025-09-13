@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { defaultCategories } from "./defaultCategories";
-import { defaultSubCategories } from "./defaultSubCategories";
 import { defaultTags } from "./defaultTags";
 import { defaultProducts } from "./defaultProducts";
 import { defaultCustomers } from "./defaultCustomers";
@@ -95,38 +94,6 @@ export const seedDatabase = async () => {
       }
     }
 
-    // 3. Seed subcategories (limit to 5)
-    console.log("📁 Seeding subcategories (max 5)...");
-    const subCategoryMap = new Map<string, string>(); // name -> id mapping
-    
-    const subCategoriesToSeed = defaultSubCategories.slice(0, 5);
-    for (const subCategory of subCategoriesToSeed) {
-      const categoryId = categoryMap.get(subCategory.categoryName);
-      
-      if (!categoryId) {
-        console.log(`❌ Category not found for subcategory: ${subCategory.name}`);
-        continue;
-      }
-
-      const existingSubCategory = await prisma.subCategory.findUnique({
-        where: { name: subCategory.name },
-      });
-
-      if (!existingSubCategory) {
-        const createdSubCategory = await prisma.subCategory.create({
-          data: {
-            name: subCategory.name,
-            description: subCategory.description,
-            categoryId: categoryId,
-          },
-        });
-        subCategoryMap.set(subCategory.name, createdSubCategory.id);
-        console.log(`✅ Created subcategory: ${subCategory.name} (${subCategory.categoryName})`);
-      } else {
-        subCategoryMap.set(subCategory.name, existingSubCategory.id);
-        console.log(`⏭️  Subcategory already exists: ${subCategory.name}`);
-      }
-    }
 
     // 4. Seed tags (limit to 5)
     console.log("🏷️  Seeding tags (max 5)...");
@@ -178,10 +145,9 @@ export const seedDatabase = async () => {
     const productsToSeed = defaultProducts.slice(0, 5);
     for (const product of productsToSeed) {
       const categoryId = categoryMap.get(product.categoryName);
-      const subCategoryId = subCategoryMap.get(product.subCategoryName);
       
-      if (!categoryId || !subCategoryId) {
-        console.log(`❌ Required references not found for product: ${product.name}`);
+      if (!categoryId) {
+        console.log(`❌ Category not found for product: ${product.name}`);
         continue;
       }
 
@@ -195,13 +161,11 @@ export const seedDatabase = async () => {
             name: product.name,
             mrp: product.mrp,
             productCode: product.productCode,
-            description: product.description,
             lowStockLimit: product.lowStockLimit,
             overStockLimit: product.overStockLimit,
             grammage: product.grammage,
             imageUrl: product.imageUrl,
             categoryId: categoryId,
-            subCategoryId: subCategoryId,
           },
         });
 

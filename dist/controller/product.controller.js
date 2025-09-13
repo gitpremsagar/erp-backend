@@ -6,14 +6,7 @@ const prisma = new client_1.PrismaClient();
 // Create a new product
 const createProduct = async (req, res) => {
     try {
-        const { name, mrp, productCode, description, lowStockLimit, overStockLimit, categoryId, subCategoryId, grammage, imageUrl, tags, 
-        // Stock related fields
-        stockId, manufacturingDate, arrivalDate, validityMonths, supplierName, supplierId, stockQuantity, } = req.body;
-        // Get user ID from request (assuming it's set by auth middleware)
-        const userId = req.user?.id;
-        if (!userId) {
-            return res.status(401).json({ message: "User not authenticated" });
-        }
+        const { name, mrp, productCode, lowStockLimit, overStockLimit, categoryId, grammage, imageUrl, tagIds, } = req.body;
         // Check if product code already exists
         const existingProduct = await prisma.product.findUnique({
             where: { productCode },
@@ -21,18 +14,12 @@ const createProduct = async (req, res) => {
         if (existingProduct) {
             return res.status(409).json({ message: "Product code already exists" });
         }
-        // Verify that category and subcategory exist
-        const [category, subCategory] = await Promise.all([
-            prisma.category.findUnique({ where: { id: categoryId } }),
-            prisma.subCategory.findUnique({ where: { id: subCategoryId } }),
-        ]);
+        // Verify that category exists
+        const category = await prisma.category.findUnique({ where: { id: categoryId } });
         if (!category) {
             return res.status(404).json({ message: "Category not found" });
         }
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub-category not found" });
-        }
-        // Create product, stock, and tag relations in a transaction
+        // Create product and tag relations in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // Create the product
             const product = await tx.product.create({
@@ -40,76 +27,41 @@ const createProduct = async (req, res) => {
                     name,
                     mrp,
                     productCode,
-                    description,
                     lowStockLimit: lowStockLimit || 0,
                     overStockLimit: overStockLimit || 0,
                     categoryId,
-                    subCategoryId,
                     grammage,
                     imageUrl,
                 },
                 include: {
                     Category: true,
-                    SubCategory: true,
                 },
             });
-            // Create stock entry if stock data is provided
-            let stock = null;
-            if (stockId && stockQuantity !== undefined) {
-                const expiryDate = new Date(manufacturingDate);
-                expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 10));
-                stock = await tx.stock.create({
-                    data: {
-                        stockId,
-                        productId: product.id,
-                        manufacturingDate: new Date(manufacturingDate),
-                        arrivalDate: new Date(arrivalDate),
-                        validityMonths: validityMonths || 1,
-                        expiryDate,
-                        supplierName,
-                        supplierId,
-                        stockQuantity,
-                    },
-                });
-                // Create stock record for the initial stock entry
-                await tx.stockRecord.create({
-                    data: {
-                        productId: product.id,
-                        changeInStock: stockQuantity,
-                        createdBy: userId,
-                        stockId: stock.stockId,
-                        reason: "ARRIVAL_FROM_SUPPLIER",
-                    },
-                });
-            }
-            // Create product tag relations if tags are provided
+            // Create product tag relations if tagIds are provided
             const tagRelations = [];
-            if (tags && tags.length > 0) {
-                for (const tagName of tags) {
-                    // Find or create the tag
-                    let tag = await tx.productTag.findFirst({
-                        where: { name: tagName },
-                    });
-                    if (!tag) {
-                        tag = await tx.productTag.create({
-                            data: { name: tagName },
-                        });
-                    }
-                    // Create the relation
+            if (tagIds && tagIds.length > 0) {
+                // Verify that all tag IDs exist
+                const existingTags = await tx.productTag.findMany({
+                    where: { id: { in: tagIds } },
+                });
+                if (existingTags.length !== tagIds.length) {
+                    throw new Error("One or more tag IDs do not exist");
+                }
+                // Create the relations
+                for (const tagId of tagIds) {
                     const relation = await tx.productTagRelation.create({
                         data: {
                             productId: product.id,
-                            productTagId: tag.id,
+                            productTagId: tagId,
                         },
                     });
                     tagRelations.push(relation);
                 }
             }
-            return { product, stock, tagRelations };
+            return { product, tagRelations };
         });
         res.status(201).json({
             product: result.product,
-            stock: result.stock,
             tagRelations: result.tagRelations,
         });
     }
@@ -121,9 +73,9 @@ const createProduct = async (req, res) => {
 exports.createProduct = createProduct;
 // Get all products with pagination and filtering
 const getProducts = async (req, res) => {
-    console.log("getProducts");
+    // console.log("getProducts");
     try {
-        const { page = 1, limit = 10, search, categoryId, subCategoryId, minPrice, maxPrice, productTagIds, } = req.query;
+        const { page = 1, limit = 10, search, categoryId, minPrice, maxPrice, productTagIds, } = req.query;
         // Convert string values to numbers
         const pageNum = parseInt(page, 10) || 1;
         const limitNum = parseInt(limit, 10) || 10;
@@ -134,14 +86,10 @@ const getProducts = async (req, res) => {
             where.OR = [
                 { name: { contains: search, mode: "insensitive" } },
                 { productCode: { contains: search, mode: "insensitive" } },
-                { description: { contains: search, mode: "insensitive" } },
             ];
         }
         if (categoryId) {
             where.categoryId = categoryId;
-        }
-        if (subCategoryId) {
-            where.subCategoryId = subCategoryId;
         }
         if (minPrice !== undefined || maxPrice !== undefined) {
             where.mrp = {};
@@ -170,12 +118,6 @@ const getProducts = async (req, res) => {
                 take: limitNum,
                 include: {
                     Category: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
-                    SubCategory: {
                         select: {
                             id: true,
                             name: true,
@@ -230,7 +172,6 @@ const getProductById = async (req, res) => {
             where: { id },
             include: {
                 Category: true,
-                SubCategory: true,
                 ProductTagRelation: {
                     include: {
                         ProductTag: true,
@@ -275,7 +216,7 @@ const updateProduct = async (req, res) => {
                 return res.status(409).json({ message: "Product code already exists" });
             }
         }
-        // Verify that category and subcategory exist if they're being updated
+        // Verify that category exists if it's being updated
         if (updateData.categoryId) {
             const category = await prisma.category.findUnique({
                 where: { id: updateData.categoryId },
@@ -284,56 +225,43 @@ const updateProduct = async (req, res) => {
                 return res.status(404).json({ message: "Category not found" });
             }
         }
-        if (updateData.subCategoryId) {
-            const subCategory = await prisma.subCategory.findUnique({
-                where: { id: updateData.subCategoryId },
-            });
-            if (!subCategory) {
-                return res.status(404).json({ message: "Sub-category not found" });
-            }
-        }
         // Handle tag updates if provided
         let tagRelations = [];
-        if (updateData.tags) {
+        if (updateData.tagIds) {
             // Remove existing tag relations
             await prisma.productTagRelation.deleteMany({
                 where: { productId: id },
             });
+            // Verify that all tag IDs exist
+            const existingTags = await prisma.productTag.findMany({
+                where: { id: { in: updateData.tagIds } },
+            });
+            if (existingTags.length !== updateData.tagIds.length) {
+                return res.status(400).json({ message: "One or more tag IDs do not exist" });
+            }
             // Create new tag relations
-            for (const tagName of updateData.tags) {
-                // Find or create the tag
-                let tag = await prisma.productTag.findFirst({
-                    where: { name: tagName },
-                });
-                if (!tag) {
-                    tag = await prisma.productTag.create({
-                        data: { name: tagName },
-                    });
-                }
-                // Create the relation
+            for (const tagId of updateData.tagIds) {
                 const relation = await prisma.productTagRelation.create({
                     data: {
                         productId: id,
-                        productTagId: tag.id,
+                        productTagId: tagId,
                     },
                 });
                 tagRelations.push(relation);
             }
-            // Remove tags from updateData as it's handled separately
-            delete updateData.tags;
+            // Remove tagIds from updateData as it's handled separately
+            delete updateData.tagIds;
         }
         const product = await prisma.product.update({
             where: { id },
             data: updateData,
             include: {
                 Category: true,
-                SubCategory: true,
                 ProductTagRelation: {
                     include: {
                         ProductTag: true,
                     },
                 },
-                Stock: true,
             },
         });
         res.json({ product, tagRelations });
@@ -360,10 +288,16 @@ const deleteProduct = async (req, res) => {
             where: { productId: id },
         });
         if (orderItems.length > 0) {
+            console.log("orderItems", orderItems, "\n cannot delete product as it is associated with existing orders");
             return res.status(400).json({
                 message: "Cannot delete product as it is associated with existing orders",
             });
         }
+        // Delete related ProductTagRelation records first
+        await prisma.productTagRelation.deleteMany({
+            where: { productId: id }
+        });
+        // Now delete the product
         await prisma.product.delete({
             where: { id },
         });
@@ -385,15 +319,11 @@ const getProductStats = async (req, res) => {
                     mrp: true,
                 },
             }),
-            // Count products with low stock (stock quantity <= lowStockLimit)
+            // Count products with low stock (based on lowStockLimit field)
             prisma.product.count({
                 where: {
-                    Stock: {
-                        some: {
-                            stockQuantity: {
-                                lte: 10, // Default low stock threshold
-                            },
-                        },
+                    lowStockLimit: {
+                        gt: 0,
                     },
                 },
             }),
