@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Create a new stock entry
-export const createStock = async (req: Request, res: Response) => {
+export const createStockBatch = async (req: Request, res: Response) => {
   try {
     const {
       productId,
@@ -68,7 +68,7 @@ export const createStock = async (req: Request, res: Response) => {
 };
 
 // Get all stock entries with pagination and filtering
-export const getStocks = async (req: Request, res: Response) => {
+export const getStockBatches = async (req: Request, res: Response) => {
   try {
     const {
       page = 1,
@@ -179,7 +179,7 @@ export const getStocks = async (req: Request, res: Response) => {
 };
 
 // Get a single stock entry by ID
-export const getStockById = async (req: Request, res: Response) => {
+export const getStockBatchById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -220,7 +220,7 @@ export const getStockById = async (req: Request, res: Response) => {
 
 
 // Update a stock entry
-export const updateStock = async (req: Request, res: Response) => {
+export const updateStockBatch = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -296,7 +296,7 @@ export const updateStock = async (req: Request, res: Response) => {
 };
 
 // Delete a stock entry
-export const deleteStock = async (req: Request, res: Response) => {
+export const deleteStockBatch = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 

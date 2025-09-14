@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateStockSchema, UpdateStockSchema, StockQuerySchema } from "../libs/schemas/stockForm.schema";
+import { CreateStockBatchSchema, UpdateStockBatchSchema, StockBatchQuerySchema } from "../libs/schemas/stockBatchForm.schema";
 import z from "zod";
 
-export const validateCreateStock = (
+export const validateCreateStockBatch = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    CreateStockSchema.parse(req.body);
+    CreateStockBatchSchema.parse(req.body);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Create Stock Validation error:\n", error);
@@ -21,13 +21,13 @@ export const validateCreateStock = (
   next();
 };
 
-export const validateUpdateStock = (
+export const validateUpdateStockBatch = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    UpdateStockSchema.parse(req.body);
+    UpdateStockBatchSchema.parse(req.body);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Update Stock Validation error:\n", error);
@@ -40,13 +40,13 @@ export const validateUpdateStock = (
   next();
 };
 
-export const validateStockQuery = (
+export const validateStockBatchQuery = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    StockQuerySchema.parse(req.query);
+    StockBatchQuerySchema.parse(req.query);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("Stock Query Validation error:\n", error);

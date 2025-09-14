@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const CreateStockSchema = z.object({
+export const CreateStockBatchSchema = z.object({
   productId: z
     .string()
     .min(24, "Invalid product ID")
@@ -38,9 +38,9 @@ export const CreateStockSchema = z.object({
     .optional(),
 });
 
-export const UpdateStockSchema = CreateStockSchema.partial();
+export const UpdateStockBatchSchema = CreateStockBatchSchema.partial();
 
-export const StockQuerySchema = z.object({
+export const StockBatchQuerySchema = z.object({
   page: z.string().optional().transform(val => val ? parseInt(val) : 1),
   limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
   search: z.string().optional(),
