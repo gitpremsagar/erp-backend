@@ -441,7 +441,7 @@ export const getStockBatchesByProductId = async (req: Request, res: Response) =>
     const { productId } = req.params;
     const {
       page = 1,
-      limit = 10,
+      limit = 100,
       isArchived,
       expired,
       lowStock,
