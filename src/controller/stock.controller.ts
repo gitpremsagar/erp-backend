@@ -38,7 +38,7 @@ export const createStock = async (req: Request, res: Response) => {
     }
 
     // Create stock entry
-    const stock = await prisma.stock.create({
+    const stock = await prisma.stockBatch.create({
       data: {
         productId,
         manufacturingDate: manufacturingDateObj,
@@ -133,7 +133,7 @@ export const getStocks = async (req: Request, res: Response) => {
     }
 
     const [stocks, total] = await Promise.all([
-      prisma.stock.findMany({
+      prisma.stockBatch.findMany({
         where,
         skip,
         take: limitNum,
@@ -156,7 +156,7 @@ export const getStocks = async (req: Request, res: Response) => {
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.stock.count({ where }),
+      prisma.stockBatch.count({ where }),
     ]);
 
     const totalPages = Math.ceil(total / limitNum);
@@ -183,7 +183,7 @@ export const getStockById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const stock = await prisma.stock.findUnique({
+    const stock = await prisma.stockBatch.findUnique({
       where: { id },
       include: {
         product: {
@@ -226,7 +226,7 @@ export const updateStock = async (req: Request, res: Response) => {
     const updateData = req.body;
 
     // Check if stock exists
-    const existingStock = await prisma.stock.findUnique({
+    const existingStock = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
@@ -275,7 +275,7 @@ export const updateStock = async (req: Request, res: Response) => {
       updateData.arrivalDate = new Date(updateData.arrivalDate);
     }
 
-    const stock = await prisma.stock.update({
+    const stock = await prisma.stockBatch.update({
       where: { id },
       data: updateData,
       include: {
@@ -301,7 +301,7 @@ export const deleteStock = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     // Check if stock exists
-    const existingStock = await prisma.stock.findUnique({
+    const existingStock = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
@@ -312,7 +312,7 @@ export const deleteStock = async (req: Request, res: Response) => {
     // TODO: delete related stock records
     // Check if stock is used in any stock records
     const stockRecords = await prisma.stockRecord.findMany({
-      where: { stockId: existingStock.id },
+      where: { stockBatchId: existingStock.id },
     });
 
     if (stockRecords.length > 0) {
@@ -322,7 +322,7 @@ export const deleteStock = async (req: Request, res: Response) => {
     }
 
     // Delete the stock
-    await prisma.stock.delete({
+    await prisma.stockBatch.delete({
       where: { id },
     });
 
@@ -340,7 +340,7 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
     const { isArchived } = req.body;
 
     // Check if stock exists
-    const existingStock = await prisma.stock.findUnique({
+    const existingStock = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
@@ -348,7 +348,7 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Stock not found" });
     }
 
-    const stock = await prisma.stock.update({
+    const stock = await prisma.stockBatch.update({
       where: { id },
       data: { isArchived },
       include: {
@@ -378,23 +378,23 @@ export const getStockStats = async (req: Request, res: Response) => {
       lowStockCount,
       archivedStocks,
     ] = await Promise.all([
-      prisma.stock.count(),
-      prisma.stock.aggregate({
+      prisma.stockBatch.count(),
+      prisma.stockBatch.aggregate({
         _sum: {
           stockQuantity: true,
         },
       }),
-      prisma.stock.count({
+      prisma.stockBatch.count({
         where: {
           expiryDate: { lt: new Date() },
         },
       }),
-      prisma.stock.count({
+      prisma.stockBatch.count({
         where: {
           stockQuantity: { lte: 10 }, // Example threshold
         },
       }),
-      prisma.stock.count({
+      prisma.stockBatch.count({
         where: {
           isArchived: true,
         },
@@ -402,7 +402,7 @@ export const getStockStats = async (req: Request, res: Response) => {
     ]);
 
     // Calculate total inventory value
-    const stocksWithProducts = await prisma.stock.findMany({
+    const stocksWithProducts = await prisma.stockBatch.findMany({
       include: {
         product: {
           select: {
@@ -440,7 +440,7 @@ export const getStockAlerts = async (req: Request, res: Response) => {
   try {
     const [expiredStocks, lowStockItems, expiringSoon] = await Promise.all([
       // Expired stocks
-      prisma.stock.findMany({
+      prisma.stockBatch.findMany({
         where: {
           expiryDate: { lt: new Date() },
           isArchived: false,
@@ -457,7 +457,7 @@ export const getStockAlerts = async (req: Request, res: Response) => {
         orderBy: { expiryDate: "asc" },
       }),
       // Low stock items
-      prisma.stock.findMany({
+      prisma.stockBatch.findMany({
         where: {
           stockQuantity: { lte: 10 }, // Example threshold
           isArchived: false,
@@ -474,7 +474,7 @@ export const getStockAlerts = async (req: Request, res: Response) => {
         orderBy: { stockQuantity: "asc" },
       }),
       // Expiring soon (within 30 days)
-      prisma.stock.findMany({
+      prisma.stockBatch.findMany({
         where: {
           expiryDate: {
             gte: new Date(),

@@ -184,7 +184,7 @@ export const seedDatabase = async () => {
       if (!productId) continue;
 
       // Check if stock already exists for this product
-      const existingStock = await prisma.stock.findFirst({
+      const existingStock = await prisma.stockBatch.findFirst({
         where: { productId: productId },
       });
 
@@ -194,7 +194,7 @@ export const seedDatabase = async () => {
         const expiryDate = new Date();
         expiryDate.setMonth(expiryDate.getMonth() + 6); // 6 months validity
         
-        const stock = await prisma.stock.create({
+        const stock = await prisma.stockBatch.create({
           data: {
             productId: productId,
             manufacturingDate: manufacturingDate,
@@ -210,7 +210,7 @@ export const seedDatabase = async () => {
         await prisma.stockRecord.create({
           data: {
             productId: productId,
-            stockId: stock.id,
+            stockBatchId: stock.id,
             changeInStock: product.stock,
             createdBy: adminUser!.id,
             reason: "ARRIVAL_FROM_SUPPLIER",

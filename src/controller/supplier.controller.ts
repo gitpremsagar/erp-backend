@@ -58,7 +58,7 @@ export const getSuppliers = async (req: Request, res: Response) => {
         skip,
         take: limitNum,
         include: {
-          Stock: {
+          StockBatch: {
             select: {
               id: true,
               stockQuantity: true,
@@ -103,7 +103,7 @@ export const getSupplierById = async (req: Request, res: Response) => {
     const supplier = await prisma.supplier.findUnique({
       where: { id },
       include: {
-        Stock: {
+          StockBatch: {
           include: {
             product: {
               include: {
@@ -165,7 +165,7 @@ export const updateSupplier = async (req: Request, res: Response) => {
       where: { id },
       data: { name },
       include: {
-        Stock: {
+          StockBatch: {
           select: {
             id: true,
             stockQuantity: true,
@@ -202,7 +202,7 @@ export const deleteSupplier = async (req: Request, res: Response) => {
     }
 
     // Check if supplier is used in any stock records
-    const stockRecords = await prisma.stock.findMany({
+    const stockRecords = await prisma.stockBatch.findMany({
       where: { supplierId: existingSupplier.id },
     });
 
@@ -235,14 +235,14 @@ export const getSupplierStats = async (req: Request, res: Response) => {
       prisma.supplier.count(),
       prisma.supplier.count({
         where: {
-          Stock: {
+          StockBatch: {
             some: {
               stockQuantity: { gt: 0 },
             },
           },
         },
       }),
-      prisma.stock.aggregate({
+      prisma.stockBatch.aggregate({
         where: {
           supplierId: { not: null },
         },
@@ -255,7 +255,7 @@ export const getSupplierStats = async (req: Request, res: Response) => {
     // Calculate total inventory value by supplier
     const suppliersWithProducts = await prisma.supplier.findMany({
       include: {
-        Stock: {
+          StockBatch: {
           include: {
             product: {
               select: {
@@ -269,7 +269,7 @@ export const getSupplierStats = async (req: Request, res: Response) => {
 
     const totalInventoryValue = suppliersWithProducts.reduce(
       (sum, supplier) => {
-        const supplierValue = supplier.Stock.reduce(
+        const supplierValue = supplier.StockBatch.reduce(
           (stockSum, stock) => stockSum + (stock.product.mrp * stock.stockQuantity),
           0
         );

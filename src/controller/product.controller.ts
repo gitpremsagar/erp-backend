@@ -169,7 +169,7 @@ export const getProducts = async (req: Request, res: Response) => {
               }
             },
           },
-          Stock: {
+          StockBatch: {
             select: {
               id: true,
               stockQuantity: true,
@@ -214,7 +214,7 @@ export const getProductById = async (req: Request, res: Response) => {
               ProductTag: true,
             },
           },
-          Stock: true,
+          StockBatch: true,
           StockRecord: {
             orderBy: { createdAt: "desc" },
           },
