@@ -172,6 +172,10 @@ export const getProducts = async (req: Request, res: Response) => {
           StockBatch: {
             select: {
               id: true,
+              manufacturingDate: true,
+              arrivalDate: true,
+              validityMonths: true,
+              expiryDate: true,
               stockQuantity: true,
             },
           },

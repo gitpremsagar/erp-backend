@@ -80,3 +80,28 @@ export const validateToggleArchive = (
   }
   next();
 };
+
+export const validateProductId = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const schema = z.object({
+      productId: z
+        .string()
+        .min(24, "Invalid product ID")
+        .max(24, "Invalid product ID"),
+    });
+    schema.parse(req.params);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error("Product ID Validation error:\n", error);
+      res.status(400).json({ message: error });
+      return;
+    }
+    res.status(500).json({ message: "Internal server error" });
+    return;
+  }
+  next();
+};

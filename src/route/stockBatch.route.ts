@@ -3,6 +3,7 @@ import {
   createStockBatch,
   getStockBatches,
   getStockBatchById,
+  getStockBatchesByProductId,
   updateStockBatch,
   deleteStockBatch,
   toggleStockArchive,
@@ -14,6 +15,7 @@ import {
   validateUpdateStockBatch,
   validateStockBatchQuery,
   validateToggleArchive,
+  validateProductId,
 } from "../middleware/stockBatch.middleware";
 import { validateAccessToken } from "../middleware/auth.middleware";
 
@@ -27,6 +29,9 @@ router.post("/", validateCreateStockBatch, createStockBatch);
 
 // Get all stock entries with pagination and filtering
 router.get("/", validateStockBatchQuery, getStockBatches);
+
+// Get stock batches by product ID
+router.get("/product/:productId", validateProductId, getStockBatchesByProductId);
 
 // Get stock statistics
 router.get("/stats", getStockStats);

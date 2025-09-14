@@ -132,7 +132,7 @@ export const getStockBatches = async (req: Request, res: Response) => {
       }
     }
 
-    const [stocks, total] = await Promise.all([
+    const [stockBatches, total] = await Promise.all([
       prisma.stockBatch.findMany({
         where,
         skip,
@@ -162,7 +162,7 @@ export const getStockBatches = async (req: Request, res: Response) => {
     const totalPages = Math.ceil(total / limitNum);
 
     res.json({
-      stocks,
+      stockBatches,
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -183,7 +183,7 @@ export const getStockBatchById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const stock = await prisma.stockBatch.findUnique({
+    const stockBatch = await prisma.stockBatch.findUnique({
       where: { id },
       include: {
         product: {
@@ -207,11 +207,11 @@ export const getStockBatchById = async (req: Request, res: Response) => {
       },
     });
 
-    if (!stock) {
+    if (!stockBatch) {
       return res.status(404).json({ message: "Stock not found" });
     }
 
-    res.json({ stock });
+    res.json({ stockBatch });
   } catch (error) {
     console.error("Error fetching stock:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -226,11 +226,11 @@ export const updateStockBatch = async (req: Request, res: Response) => {
     const updateData = req.body;
 
     // Check if stock exists
-    const existingStock = await prisma.stockBatch.findUnique({
+    const existingStockBatch = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
-    if (!existingStock) {
+    if (!existingStockBatch) {
       return res.status(404).json({ message: "Stock not found" });
     }
 
@@ -258,8 +258,8 @@ export const updateStockBatch = async (req: Request, res: Response) => {
     if (updateData.manufacturingDate || updateData.validityMonths) {
       const manufacturingDate = updateData.manufacturingDate 
         ? new Date(updateData.manufacturingDate)
-        : existingStock.manufacturingDate;
-      const validityMonths = updateData.validityMonths || existingStock.validityMonths;
+        : existingStockBatch.manufacturingDate;
+      const validityMonths = updateData.validityMonths || existingStockBatch.validityMonths;
       
       const expiryDate = new Date(manufacturingDate);
       expiryDate.setMonth(expiryDate.getMonth() + validityMonths);
@@ -275,7 +275,7 @@ export const updateStockBatch = async (req: Request, res: Response) => {
       updateData.arrivalDate = new Date(updateData.arrivalDate);
     }
 
-    const stock = await prisma.stockBatch.update({
+    const stockBatch = await prisma.stockBatch.update({
       where: { id },
       data: updateData,
       include: {
@@ -288,7 +288,7 @@ export const updateStockBatch = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ stock });
+    res.json({ stockBatch });
   } catch (error) {
     console.error("Error updating stock:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -301,18 +301,18 @@ export const deleteStockBatch = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     // Check if stock exists
-    const existingStock = await prisma.stockBatch.findUnique({
+    const existingStockBatch = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
-    if (!existingStock) {
+    if (!existingStockBatch) {
       return res.status(404).json({ message: "Stock not found" });
     }
 
     // TODO: delete related stock records
     // Check if stock is used in any stock records
     const stockRecords = await prisma.stockRecord.findMany({
-      where: { stockBatchId: existingStock.id },
+      where: { stockBatchId: existingStockBatch.id },
     });
 
     if (stockRecords.length > 0) {
@@ -321,12 +321,12 @@ export const deleteStockBatch = async (req: Request, res: Response) => {
       });
     }
 
-    // Delete the stock
+    // Delete the stock batch
     await prisma.stockBatch.delete({
       where: { id },
     });
 
-    res.json({ message: "Stock deleted successfully" });
+    res.json({ message: "Stock batch deleted successfully" });
   } catch (error) {
     console.error("Error deleting stock:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -340,15 +340,15 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
     const { isArchived } = req.body;
 
     // Check if stock exists
-    const existingStock = await prisma.stockBatch.findUnique({
+    const existingStockBatch = await prisma.stockBatch.findUnique({
       where: { id },
     });
 
-    if (!existingStock) {
+    if (!existingStockBatch) {
       return res.status(404).json({ message: "Stock not found" });
     }
 
-    const stock = await prisma.stockBatch.update({
+    const stockBatch = await prisma.stockBatch.update({
       where: { id },
       data: { isArchived },
       include: {
@@ -361,7 +361,7 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ stock });
+    res.json({ stockBatch });
   } catch (error) {
     console.error("Error toggling stock archive:\n", error);
     res.status(500).json({ message: "Internal server error" });
@@ -372,11 +372,11 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
 export const getStockStats = async (req: Request, res: Response) => {
   try {
     const [
-      totalStocks,
+      totalStockBatches,
       totalValue,
       expiredStocks,
       lowStockCount,
-      archivedStocks,
+      archivedStockBatches,
     ] = await Promise.all([
       prisma.stockBatch.count(),
       prisma.stockBatch.aggregate({
@@ -420,17 +420,129 @@ export const getStockStats = async (req: Request, res: Response) => {
 
     res.json({
       stats: {
-        totalStocks,
+        totalStockBatches,
         totalQuantity: totalValue._sum.stockQuantity || 0,
         totalInventoryValue,
         expiredStocks,
         lowStockCount,
-        archivedStocks,
-        activeStocks: totalStocks - archivedStocks,
+        archivedStockBatches,
+        activeStockBatches: totalStockBatches - archivedStockBatches,
       },
     });
   } catch (error) {
     console.error("Error fetching stock stats:\n", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get stock batches by product ID
+export const getStockBatchesByProductId = async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const {
+      page = 1,
+      limit = 10,
+      isArchived,
+      expired,
+      lowStock,
+    } = req.query as any;
+
+    // Convert string values to numbers
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 10;
+    
+    const skip = (pageNum - 1) * limitNum;
+
+    // Verify that product exists
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        Category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Build where clause
+    const where: any = {
+      productId: productId,
+    };
+
+    if (isArchived !== undefined) {
+      where.isArchived = isArchived === 'true';
+    }
+
+    if (expired !== undefined) {
+      if (expired === 'true') {
+        where.expiryDate = { lt: new Date() };
+      } else {
+        where.expiryDate = { gte: new Date() };
+      }
+    }
+
+    if (lowStock !== undefined && lowStock === 'true') {
+      where.AND = [
+        { stockQuantity: { gt: 0 } },
+        {
+          product: {
+            lowStockLimit: { gt: 0 },
+          },
+        },
+      ];
+      // This is a simplified check - you might want to implement more sophisticated logic
+      where.stockQuantity = { lte: 10 }; // Example threshold
+    }
+
+    const [stockBatches, total] = await Promise.all([
+      prisma.stockBatch.findMany({
+        where,
+        skip,
+        take: limitNum,
+        include: {
+          product: {
+            include: {
+              Category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          supplier: true,
+          StockRecord: {
+            orderBy: { createdAt: "desc" },
+            take: 5, // Get last 5 stock records
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.stockBatch.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      product,
+      stockBatches,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching stock batches by product ID:\n", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
