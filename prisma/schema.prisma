@@ -44,8 +44,6 @@ model User {
   OrderItem       OrderItem[]
 }
 
-
-
 //========================PRODUCT CENTRIC MODELS========================
 
 model Product {
@@ -98,24 +96,25 @@ model ColorCode {
 }
 
 model Category {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  name        String        @unique
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
   description String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   Product     Product[]
 }
 
 model Stock {
   id                String        @id @default(auto()) @map("_id") @db.ObjectId
-  stockId           String        @unique //this id will be provided by the admin
+  // stockId           String        @unique //this id will be provided by the admin
   productId         String        @db.ObjectId
   manufacturingDate DateTime
   arrivalDate       DateTime
-  validityMonths    Int           @default(10)
+  validityMonths    Int           @default(1)
   expiryDate        DateTime
   supplierName      String?
   supplierId        String?       @db.ObjectId
+  supplier          Supplier?     @relation(fields: [supplierId], references: [id]) //new
   stockQuantity     Int           @default(0)
   isArchived        Boolean       @default(false)
   createdAt         DateTime      @default(now())
@@ -124,16 +123,25 @@ model Stock {
   StockRecord       StockRecord[]
 }
 
+//new
+model Supplier {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  Stock             Stock[]
+}
+
 model StockRecord {
   id            String                 @id @default(auto()) @map("_id") @db.ObjectId
   productId     String                 @db.ObjectId
+  stockId       String                 @db.ObjectId
   changeInStock Int                    @default(0)
   createdBy     String                 @db.ObjectId
   createdAt     DateTime               @default(now())
-  stockId       String
   reason        StockRecordEntryReason
   Product       Product                @relation(fields: [productId], references: [id])
-  Stock         Stock                  @relation(fields: [stockId], references: [stockId])
+  Stock         Stock                  @relation(fields: [stockId], references: [id])
   User          User                   @relation(fields: [createdBy], references: [id])
   Order         Order[]
 }

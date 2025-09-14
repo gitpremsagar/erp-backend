@@ -1,11 +1,6 @@
 import { z } from "zod";
 
 export const CreateStockSchema = z.object({
-  stockId: z
-    .string()
-    .min(1, "Stock ID is required")
-    .max(50, "Stock ID must be at most 50 characters long")
-    .trim(),
   productId: z
     .string()
     .min(24, "Invalid product ID")
@@ -30,7 +25,8 @@ export const CreateStockSchema = z.object({
     .string()
     .min(24, "Invalid supplier ID")
     .max(24, "Invalid supplier ID")
-    .optional(),
+    .optional()
+    .nullable(),
   stockQuantity: z
     .number()
     .int("Stock quantity must be an integer")
@@ -42,7 +38,7 @@ export const CreateStockSchema = z.object({
     .optional(),
 });
 
-export const UpdateStockSchema = CreateStockSchema.partial().omit({ stockId: true });
+export const UpdateStockSchema = CreateStockSchema.partial();
 
 export const StockQuerySchema = z.object({
   page: z.string().optional().transform(val => val ? parseInt(val) : 1),

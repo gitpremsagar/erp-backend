@@ -172,7 +172,6 @@ export const getProducts = async (req: Request, res: Response) => {
           Stock: {
             select: {
               id: true,
-              stockId: true,
               stockQuantity: true,
             },
           },

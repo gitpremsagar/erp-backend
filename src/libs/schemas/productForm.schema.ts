@@ -40,39 +40,6 @@ export const CreateProductSchema = z.object({
     .trim()
     .optional(),
   tagIds: z.array(z.string().min(24, "Invalid tag ID").max(24, "Invalid tag ID")).optional(),
-  // Stock related fields (optional for product creation)
-  stockId: z
-    .string()
-    .min(1, "Stock ID is required if creating stock")
-    .optional(),
-  manufacturingDate: z
-    .string()
-    .datetime("Invalid manufacturing date format")
-    .optional(),
-  arrivalDate: z
-    .string()
-    .datetime("Invalid arrival date format")
-    .optional(),
-  validityMonths: z
-    .number()
-    .int("Validity months must be an integer")
-    .min(1, "Validity months must be at least 1")
-    .optional(),
-  supplierName: z
-    .string()
-    .max(200, "Supplier name must be at most 200 characters long")
-    .trim()
-    .optional(),
-  supplierId: z
-    .string()
-    .min(24, "Invalid supplier ID")
-    .max(24, "Invalid supplier ID")
-    .optional(),
-  stockQuantity: z
-    .number()
-    .int("Stock quantity must be an integer")
-    .min(0, "Stock quantity cannot be negative")
-    .optional(),
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();

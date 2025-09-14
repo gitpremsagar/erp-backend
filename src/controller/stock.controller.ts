@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 export const createStock = async (req: Request, res: Response) => {
   try {
     const {
-      stockId,
       productId,
       manufacturingDate,
       arrivalDate,
@@ -17,15 +16,6 @@ export const createStock = async (req: Request, res: Response) => {
       stockQuantity,
       isArchived,
     } = req.body;
-
-    // Check if stock ID already exists
-    const existingStock = await prisma.stock.findUnique({
-      where: { stockId },
-    });
-
-    if (existingStock) {
-      return res.status(409).json({ message: "Stock ID already exists" });
-    }
 
     // Verify that product exists
     const product = await prisma.product.findUnique({ where: { id: productId } });
@@ -37,16 +27,23 @@ export const createStock = async (req: Request, res: Response) => {
     // Calculate expiry date
     const manufacturingDateObj = new Date(manufacturingDate);
     const expiryDate = new Date(manufacturingDateObj);
-    expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 10));
+    expiryDate.setMonth(expiryDate.getMonth() + (validityMonths || 1));
+
+    // Verify that supplier exists if supplierId is provided
+    if (supplierId) {
+      const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } });
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+    }
 
     // Create stock entry
     const stock = await prisma.stock.create({
       data: {
-        stockId,
         productId,
         manufacturingDate: manufacturingDateObj,
         arrivalDate: new Date(arrivalDate),
-        validityMonths: validityMonths || 10,
+        validityMonths: validityMonths || 1,
         expiryDate,
         supplierName,
         supplierId,
@@ -59,6 +56,7 @@ export const createStock = async (req: Request, res: Response) => {
             Category: true,
           },
         },
+        supplier: true,
       },
     });
 
@@ -94,7 +92,6 @@ export const getStocks = async (req: Request, res: Response) => {
 
     if (search) {
       where.OR = [
-        { stockId: { contains: search, mode: "insensitive" } },
         { supplierName: { contains: search, mode: "insensitive" } },
         { product: { name: { contains: search, mode: "insensitive" } } },
       ];
@@ -151,9 +148,10 @@ export const getStocks = async (req: Request, res: Response) => {
               },
             },
           },
+          supplier: true,
           StockRecord: {
             orderBy: { createdAt: "desc" },
-            take: 5, // Get last 5 stock records
+            // take: 5, // Get last 5 stock records
           },
         },
         orderBy: { createdAt: "desc" },
@@ -191,13 +189,9 @@ export const getStockById = async (req: Request, res: Response) => {
         product: {
           include: {
             Category: true,
-            ProductTagRelation: {
-              include: {
-                ProductTag: true,
-              },
-            },
           },
         },
+        supplier: true,
         StockRecord: {
           orderBy: { createdAt: "desc" },
           include: {
@@ -224,49 +218,6 @@ export const getStockById = async (req: Request, res: Response) => {
   }
 };
 
-// Get stock by stockId
-export const getStockByStockId = async (req: Request, res: Response) => {
-  try {
-    const { stockId } = req.params;
-
-    const stock = await prisma.stock.findUnique({
-      where: { stockId },
-      include: {
-        product: {
-          include: {
-            Category: true,
-            ProductTagRelation: {
-              include: {
-                ProductTag: true,
-              },
-            },
-          },
-        },
-        StockRecord: {
-          orderBy: { createdAt: "desc" },
-          include: {
-            User: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!stock) {
-      return res.status(404).json({ message: "Stock not found" });
-    }
-
-    res.json({ stock });
-  } catch (error) {
-    console.error("Error fetching stock:\n", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
 
 // Update a stock entry
 export const updateStock = async (req: Request, res: Response) => {
@@ -290,6 +241,16 @@ export const updateStock = async (req: Request, res: Response) => {
       });
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
+      }
+    }
+
+    // Verify that supplier exists if supplierId is being updated
+    if (updateData.supplierId) {
+      const supplier = await prisma.supplier.findUnique({
+        where: { id: updateData.supplierId },
+      });
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
       }
     }
 
@@ -323,6 +284,7 @@ export const updateStock = async (req: Request, res: Response) => {
             Category: true,
           },
         },
+        supplier: true,
       },
     });
 
@@ -347,9 +309,10 @@ export const deleteStock = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Stock not found" });
     }
 
+    // TODO: delete related stock records
     // Check if stock is used in any stock records
     const stockRecords = await prisma.stockRecord.findMany({
-      where: { stockId: existingStock.stockId },
+      where: { stockId: existingStock.id },
     });
 
     if (stockRecords.length > 0) {
@@ -394,6 +357,7 @@ export const toggleStockArchive = async (req: Request, res: Response) => {
             Category: true,
           },
         },
+        supplier: true,
       },
     });
 
@@ -445,6 +409,7 @@ export const getStockStats = async (req: Request, res: Response) => {
             mrp: true,
           },
         },
+        supplier: true,
       },
     });
 
@@ -487,6 +452,7 @@ export const getStockAlerts = async (req: Request, res: Response) => {
               productCode: true,
             },
           },
+          supplier: true,
         },
         orderBy: { expiryDate: "asc" },
       }),
@@ -523,6 +489,7 @@ export const getStockAlerts = async (req: Request, res: Response) => {
               productCode: true,
             },
           },
+          supplier: true,
         },
         orderBy: { expiryDate: "asc" },
       }),

@@ -196,7 +196,6 @@ export const seedDatabase = async () => {
         
         const stock = await prisma.stock.create({
           data: {
-            stockId: `STK-${product.productCode}-${Date.now()}`,
             productId: productId,
             manufacturingDate: manufacturingDate,
             arrivalDate: arrivalDate,
@@ -211,9 +210,9 @@ export const seedDatabase = async () => {
         await prisma.stockRecord.create({
           data: {
             productId: productId,
+            stockId: stock.id,
             changeInStock: product.stock,
             createdBy: adminUser!.id,
-            stockId: stock.stockId,
             reason: "ARRIVAL_FROM_SUPPLIER",
           },
         });

@@ -3,7 +3,6 @@ import {
   createStock,
   getStocks,
   getStockById,
-  getStockByStockId,
   updateStock,
   deleteStock,
   toggleStockArchive,
@@ -35,8 +34,6 @@ router.get("/stats", getStockStats);
 // Get stock alerts (expired, low stock, etc.)
 router.get("/alerts", getStockAlerts);
 
-// Get stock by stockId (custom ID provided by admin)
-router.get("/stock-id/:stockId", getStockByStockId);
 
 // Get a single stock entry by ID
 router.get("/:id", getStockById);
