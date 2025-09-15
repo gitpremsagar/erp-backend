@@ -17,6 +17,7 @@ const customer_route_1 = __importDefault(require("./route/customer.route"));
 const deliveryAddress_route_1 = __importDefault(require("./route/deliveryAddress.route"));
 const productTag_route_1 = __importDefault(require("./route/productTag.route"));
 const stockBatch_route_1 = __importDefault(require("./route/stockBatch.route"));
+const stockRecord_route_1 = __importDefault(require("./route/stockRecord.route"));
 const supplier_route_1 = __importDefault(require("./route/supplier.route"));
 const app = (0, express_1.default)();
 // allow all origins
@@ -43,6 +44,7 @@ app.use("/api/customers", customer_route_1.default);
 app.use("/api/delivery-addresses", deliveryAddress_route_1.default);
 app.use("/api/product-tags", productTag_route_1.default);
 app.use("/api/stock-batches", stockBatch_route_1.default);
+app.use("/api/stock-records", stockRecord_route_1.default);
 app.use("/api/suppliers", supplier_route_1.default);
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {
