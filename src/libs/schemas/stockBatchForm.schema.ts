@@ -7,10 +7,18 @@ export const CreateStockBatchSchema = z.object({
     .max(24, "Invalid product ID"),
   manufacturingDate: z
     .string()
-    .datetime("Invalid manufacturing date format"),
+    .refine((date) => {
+      // Accept various date formats: ISO datetime, date only, or common formats
+      const dateObj = new Date(date);
+      return !isNaN(dateObj.getTime());
+    }, "Invalid manufacturing date format"),
   arrivalDate: z
     .string()
-    .datetime("Invalid arrival date format"),
+    .refine((date) => {
+      // Accept various date formats: ISO datetime, date only, or common formats
+      const dateObj = new Date(date);
+      return !isNaN(dateObj.getTime());
+    }, "Invalid arrival date format"),
   validityMonths: z
     .number()
     .int("Validity months must be an integer")

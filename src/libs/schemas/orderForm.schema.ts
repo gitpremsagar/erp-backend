@@ -91,6 +91,12 @@ export const OrderQuerySchema = z.object({
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   status: z.enum(["PENDING", "MODIFYING", "PACKING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
   customerId: z.string().min(24).max(24).optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.string().refine((date) => {
+    const dateObj = new Date(date);
+    return !isNaN(dateObj.getTime());
+  }, "Invalid start date format").optional(),
+  endDate: z.string().refine((date) => {
+    const dateObj = new Date(date);
+    return !isNaN(dateObj.getTime());
+  }, "Invalid end date format").optional(),
 });

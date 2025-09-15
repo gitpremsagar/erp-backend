@@ -133,10 +133,13 @@ const getProducts = async (req, res) => {
                             }
                         },
                     },
-                    Stock: {
+                    StockBatch: {
                         select: {
                             id: true,
-                            stockId: true,
+                            manufacturingDate: true,
+                            arrivalDate: true,
+                            validityMonths: true,
+                            expiryDate: true,
                             stockQuantity: true,
                         },
                     },
@@ -177,7 +180,7 @@ const getProductById = async (req, res) => {
                         ProductTag: true,
                     },
                 },
-                Stock: true,
+                StockBatch: true,
                 StockRecord: {
                     orderBy: { createdAt: "desc" },
                 },

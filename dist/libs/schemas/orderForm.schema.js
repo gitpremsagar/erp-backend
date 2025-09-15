@@ -91,7 +91,13 @@ exports.OrderQuerySchema = zod_1.z.object({
     limit: zod_1.z.string().regex(/^\d+$/).transform(Number).optional(),
     status: zod_1.z.enum(["PENDING", "MODIFYING", "PACKING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
     customerId: zod_1.z.string().min(24).max(24).optional(),
-    startDate: zod_1.z.string().datetime().optional(),
-    endDate: zod_1.z.string().datetime().optional(),
+    startDate: zod_1.z.string().refine((date) => {
+        const dateObj = new Date(date);
+        return !isNaN(dateObj.getTime());
+    }, "Invalid start date format").optional(),
+    endDate: zod_1.z.string().refine((date) => {
+        const dateObj = new Date(date);
+        return !isNaN(dateObj.getTime());
+    }, "Invalid end date format").optional(),
 });
 //# sourceMappingURL=orderForm.schema.js.map
