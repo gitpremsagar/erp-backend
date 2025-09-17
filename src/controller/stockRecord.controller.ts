@@ -349,61 +349,61 @@ export const updateStockRecord = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a stock record
-export const deleteStockRecord = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+// // Delete a stock record
+// export const deleteStockRecord = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
 
-    // Check if stock record exists
-    const existingStockRecord = await prisma.stockRecord.findUnique({
-      where: { id },
-      include: {
-        StockBatch: true,
-        Order: true,
-      },
-    });
+//     // Check if stock record exists
+//     const existingStockRecord = await prisma.stockRecord.findUnique({
+//       where: { id },
+//       include: {
+//         StockBatch: true,
+//         Order: true,
+//       },
+//     });
 
-    if (!existingStockRecord) {
-      return res.status(404).json({ message: "Stock record not found" });
-    }
+//     if (!existingStockRecord) {
+//       return res.status(404).json({ message: "Stock record not found" });
+//     }
 
-    // Check if stock record is used in any orders
-    if (existingStockRecord.Order.length > 0) {
-      return res.status(400).json({
-        message: "Cannot delete stock record as it is associated with orders",
-      });
-    }
+//     // Check if stock record is used in any orders
+//     if (existingStockRecord.Order && existingStockRecord.Order.length > 0) {
+//       return res.status(400).json({
+//         message: "Cannot delete stock record as it is associated with orders",
+//       });
+//     }
 
-    // Revert the stock batch quantity
-    const currentStock = existingStockRecord.StockBatch.stockQuantity;
-    const revertedStock = currentStock - existingStockRecord.changeInStock;
+//     // Revert the stock batch quantity
+//     const currentStock = existingStockRecord.StockBatch.stockQuantity;
+//     const revertedStock = currentStock - existingStockRecord.changeInStock;
     
-    if (revertedStock < 0) {
-      return res.status(400).json({
-        message: "Cannot delete stock record as it would result in negative stock",
-      });
-    }
+//     if (revertedStock < 0) {
+//       return res.status(400).json({
+//         message: "Cannot delete stock record as it would result in negative stock",
+//       });
+//     }
 
-    // Update the stock batch quantity
-    await prisma.stockBatch.update({
-      where: { id: existingStockRecord.stockBatchId },
-      data: { stockQuantity: revertedStock },
-    });
+//     // Update the stock batch quantity
+//     await prisma.stockBatch.update({
+//       where: { id: existingStockRecord.stockBatchId },
+//       data: { stockQuantity: revertedStock },
+//     });
 
-    // Delete the stock record
-    await prisma.stockRecord.delete({
-      where: { id },
-    });
+//     // Delete the stock record
+//     await prisma.stockRecord.delete({
+//       where: { id },
+//     });
 
-    res.json({ 
-      message: "Stock record deleted successfully",
-      revertedStockQuantity: revertedStock 
-    });
-  } catch (error) {
-    console.error("Error deleting stock record:\n", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     res.json({ 
+//       message: "Stock record deleted successfully",
+//       revertedStockQuantity: revertedStock 
+//     });
+//   } catch (error) {
+//     console.error("Error deleting stock record:\n", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 // Get stock records by product ID
 export const getStockRecordsByProductId = async (req: Request, res: Response) => {

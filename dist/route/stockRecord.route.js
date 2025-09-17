@@ -24,6 +24,6 @@ router.get("/:id", stockRecord_middleware_1.validateStockRecordId, stockRecord_c
 // Update a stock record
 router.put("/:id", stockRecord_middleware_1.validateStockRecordId, stockRecord_middleware_1.validateUpdateStockRecord, stockRecord_controller_1.updateStockRecord);
 // Delete a stock record
-router.delete("/:id", stockRecord_middleware_1.validateStockRecordId, stockRecord_controller_1.deleteStockRecord);
+// router.delete("/:id", validateStockRecordId, deleteStockRecord);
 exports.default = router;
 //# sourceMappingURL=stockRecord.route.js.map

@@ -4,7 +4,7 @@ import {
   getStockRecords,
   getStockRecordById,
   updateStockRecord,
-  deleteStockRecord,
+  // deleteStockRecord,
   getStockRecordsByProductId,
   getStockRecordsByStockBatchId,
   getStockRecordStats,
@@ -46,6 +46,6 @@ router.get("/:id", validateStockRecordId, getStockRecordById);
 router.put("/:id", validateStockRecordId, validateUpdateStockRecord, updateStockRecord);
 
 // Delete a stock record
-router.delete("/:id", validateStockRecordId, deleteStockRecord);
+// router.delete("/:id", validateStockRecordId, deleteStockRecord);
 
 export default router;
