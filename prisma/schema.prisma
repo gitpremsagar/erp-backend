@@ -113,7 +113,7 @@ model StockBatch {
   expiryDate        DateTime
   supplierName      String?
   supplierId        String?       @db.ObjectId
-  supplier          Supplier?     @relation(fields: [supplierId], references: [id]) 
+  supplier          Supplier?     @relation(fields: [supplierId], references: [id])
   stockQuantity     Int           @default(0)
   isArchived        Boolean       @default(false)
   createdAt         DateTime      @default(now())
@@ -123,11 +123,11 @@ model StockBatch {
 }
 
 model Supplier {
-  id                String        @id @default(auto()) @map("_id") @db.ObjectId
-  name              String
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  StockBatch        StockBatch[]
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  StockBatch StockBatch[]
 }
 
 model StockRecord {
@@ -136,17 +136,19 @@ model StockRecord {
   stockBatchId  String                 @db.ObjectId
   changeInStock Int                    @default(0)
   createdBy     String                 @db.ObjectId
+  orderId       String?                @db.ObjectId
   createdAt     DateTime               @default(now())
   reason        StockRecordEntryReason
   Product       Product                @relation(fields: [productId], references: [id])
   StockBatch    StockBatch             @relation(fields: [stockBatchId], references: [id])
   User          User                   @relation(fields: [createdBy], references: [id])
-  Order         Order[]
+  Order         Order?                 @relation(fields: [orderId], references: [id])
 }
 
 enum StockRecordEntryReason {
   ARRIVAL_FROM_SUPPLIER
   DELIVERED_TO_CUSTOMER
+  ASSIGNED_TO_ORDER
   CORRECTION_BY_ADMIN
 }
 
@@ -169,7 +171,7 @@ model Order {
   originalOrderId   String?          @db.ObjectId
   stockRecordId     String?          @db.ObjectId
   OrderItem         OrderItem[]
-  stockRecord       StockRecord?     @relation(fields: [stockRecordId], references: [id])
+  StockRecord       StockRecord[]
 }
 
 enum OrderStatus {

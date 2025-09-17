@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerId, orderItems, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
+    const { customerId, orderItems, vehicleId } = req.body;
 
     // Check if customer exists
     const customer = await prisma.user.findUnique({
@@ -27,36 +27,6 @@ export const createOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Check if delivery address exists if provided
-    if (deliveryAddressId) {
-      const deliveryAddress = await prisma.deliveryAddress.findUnique({
-        where: { id: deliveryAddressId },
-      });
-      if (!deliveryAddress) {
-        return res.status(404).json({ message: "Delivery address not found" });
-      }
-    }
-
-    // Check if original order exists if provided
-    if (originalOrderId) {
-      const originalOrder = await prisma.order.findUnique({
-        where: { id: originalOrderId },
-      });
-      if (!originalOrder) {
-        return res.status(404).json({ message: "Original order not found" });
-      }
-    }
-
-    // Check if stock record exists if provided
-    if (stockRecordId) {
-      const stockRecord = await prisma.stockRecord.findUnique({
-        where: { id: stockRecordId },
-      });
-      if (!stockRecord) {
-        return res.status(404).json({ message: "Stock record not found" });
-      }
-    }
-
     // Check if all products exist
     for (const item of orderItems) {
       const product = await prisma.product.findUnique({
@@ -68,13 +38,6 @@ export const createOrder = async (req: Request, res: Response) => {
           .status(404)
           .json({ message: `Product with ID ${item.productId} not found` });
       }
-
-      // order will get modified manually
-      // if (product.stock < item.quantity) {
-      //   return res.status(400).json({
-      //     message: `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
-      //   });
-      // }
     }
 
     // Create order and order items in a transaction
@@ -84,16 +47,7 @@ export const createOrder = async (req: Request, res: Response) => {
         data: {
           customerId,
           vehicleId,
-          deliveryAddressId,
-          totalPrice: totalPrice || 0,
-          originalOrderId,
-          stockRecordId,
-        },
-        include: {
-          customer: true,
-          vehicle: true,
-          deliveryAddress: true,
-          stockRecord: true,
+          status: "MODIFYING",
         },
       });
 
@@ -104,13 +58,56 @@ export const createOrder = async (req: Request, res: Response) => {
             orderId: newOrder.id,
             productId: item.productId,
             quantity: item.quantity,
-            customerId, // Add customerId to OrderItem
-            deliveryDate: new Date(),
+            customerId,
           },
         });
 
-        // Note: Stock management is now handled through Stock and StockRecord models
-        // Product stock updates should be managed through the stock management system
+        //get stockbatches ordered by expiry date
+        const stockBatches = await tx.stockBatch.findMany({
+          where: { productId: item.productId, stockQuantity: { gt: 0 }, isArchived: false },
+          orderBy: { expiryDate: "desc" },
+        });
+
+        //reduce stock quantity from stockbatches
+        for (const stockBatch of stockBatches) {        
+          if (stockBatch.stockQuantity >= item.quantity) {
+            await tx.stockBatch.update({
+              where: { id: stockBatch.id },
+              data: { stockQuantity: stockBatch.stockQuantity - item.quantity },
+            });
+
+            //create stock record
+            await tx.stockRecord.create({
+              data: {
+                productId: item.productId,
+                changeInStock: -item.quantity,
+                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                orderId: newOrder.id,
+                stockBatchId: stockBatch.id,
+                reason: "ASSIGNED_TO_ORDER",
+              },
+            });
+            break;
+          } else {
+            await tx.stockBatch.update({
+              where: { id: stockBatch.id },
+              data: { stockQuantity: 0 },
+            });
+            item.quantity = item.quantity - stockBatch.stockQuantity;
+
+            //create stock record
+            await tx.stockRecord.create({
+              data: {
+                productId: item.productId,
+                changeInStock: -stockBatch.stockQuantity,
+                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                orderId: newOrder.id,
+                stockBatchId: stockBatch.id,
+                reason: "ASSIGNED_TO_ORDER",
+              },
+            });
+          }
+        }
       }
 
       return newOrder;
@@ -122,8 +119,7 @@ export const createOrder = async (req: Request, res: Response) => {
       include: {
         customer: true,
         vehicle: true,
-        deliveryAddress: true,
-        stockRecord: true,
+        StockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -184,7 +180,7 @@ export const getOrders = async (req: Request, res: Response) => {
           customer: true,
           vehicle: true,
           deliveryAddress: true,
-          stockRecord: true,
+          StockRecord: true,
           OrderItem: {
             include: {
               Product: true,
@@ -254,7 +250,7 @@ export const getOrderById = async (req: Request, res: Response) => {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
-        stockRecord: true,
+        StockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -286,7 +282,7 @@ export const getOrderByCustomOrderId = async (req: Request, res: Response) => {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
-        stockRecord: true,
+        StockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -308,7 +304,10 @@ export const getOrderByCustomOrderId = async (req: Request, res: Response) => {
 };
 
 // Get orders by original order ID (for tracking order modifications)
-export const getOrdersByOriginalOrderId = async (req: Request, res: Response) => {
+export const getOrdersByOriginalOrderId = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { originalOrderId } = req.params;
     const { page = 1, limit = 10 } = req.query;
@@ -324,7 +323,7 @@ export const getOrdersByOriginalOrderId = async (req: Request, res: Response) =>
           customer: true,
           vehicle: true,
           deliveryAddress: true,
-          stockRecord: true,
+          StockRecord: true,
           OrderItem: {
             include: {
               Product: true,
@@ -360,18 +359,28 @@ export const getOrdersByOriginalOrderId = async (req: Request, res: Response) =>
 export const updateOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const { status, customerId, vehicleId, deliveryAddressId, totalPrice, originalOrderId, stockRecordId } = req.body;
+    const {
+      status,
+      customerId,
+      vehicleId,
+      originalOrderId,
+      stockRecordId,
+      orderItems, // Add support for updating order items
+    } = req.body;
 
     // Check if order exists
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
+      include: {
+        OrderItem: true,
+      },
     });
 
     if (!existingOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if customer exists if updating customerId
+    // Validate all related entities before processing
     if (customerId) {
       const customer = await prisma.user.findUnique({
         where: { id: customerId },
@@ -381,7 +390,6 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Check if vehicle exists if updating vehicleId
     if (vehicleId) {
       const vehicle = await prisma.vehicle.findUnique({
         where: { id: vehicleId },
@@ -391,17 +399,6 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Check if delivery address exists if updating deliveryAddressId
-    if (deliveryAddressId) {
-      const deliveryAddress = await prisma.deliveryAddress.findUnique({
-        where: { id: deliveryAddressId },
-      });
-      if (!deliveryAddress) {
-        return res.status(404).json({ message: "Delivery address not found" });
-      }
-    }
-
-    // Check if original order exists if updating originalOrderId
     if (originalOrderId) {
       const originalOrder = await prisma.order.findUnique({
         where: { id: originalOrderId },
@@ -411,7 +408,6 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Check if stock record exists if updating stockRecordId
     if (stockRecordId) {
       const stockRecord = await prisma.stockRecord.findUnique({
         where: { id: stockRecordId },
@@ -421,23 +417,125 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Update the order
-    const updatedOrder = await prisma.order.update({
+    // Validate order items if provided
+    if (orderItems && orderItems.length > 0) {
+      for (const item of orderItems) {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+        if (!product) {
+          return res.status(404).json({ 
+            message: `Product with ID ${item.productId} not found` 
+          });
+        }
+      }
+    }
+
+    // Update order and related data in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the order
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status,
+          customerId,
+          vehicleId,
+          originalOrderId,
+          stockRecordId,
+        },
+      });
+
+      // Handle order items updates if provided
+      let updatedOrderItems = [];
+      if (orderItems && orderItems.length > 0) {
+        // Delete existing order items
+        await tx.orderItem.deleteMany({
+          where: { orderId: orderId },
+        });
+
+        // Create new order items and manage stock
+        for (const item of orderItems) {
+          const orderItem = await tx.orderItem.create({
+            data: {
+              orderId: orderId,
+              productId: item.productId,
+              quantity: item.quantity,
+              customerId: customerId || existingOrder.customerId,
+            },
+          });
+
+          updatedOrderItems.push(orderItem);
+
+          // Handle stock management for order items
+          if (status === "MODIFYING" || status === "PENDING") {
+            // Get stock batches ordered by expiry date (newest first)
+            const stockBatches = await tx.stockBatch.findMany({
+              where: { 
+                productId: item.productId, 
+                stockQuantity: { gt: 0 }, 
+                isArchived: false 
+              },
+              orderBy: { expiryDate: "desc" },
+            });
+
+            // Reduce stock quantity from stock batches
+            let remainingQuantity = item.quantity;
+            for (const stockBatch of stockBatches) {
+              if (remainingQuantity <= 0) break;
+
+              if (stockBatch.stockQuantity >= remainingQuantity) {
+                await tx.stockBatch.update({
+                  where: { id: stockBatch.id },
+                  data: { stockQuantity: stockBatch.stockQuantity - remainingQuantity },
+                });
+
+                // Create stock record
+                await tx.stockRecord.create({
+                  data: {
+                    productId: item.productId,
+                    changeInStock: -remainingQuantity,
+                    createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                    orderId: orderId,
+                    stockBatchId: stockBatch.id,
+                    reason: "ASSIGNED_TO_ORDER",
+                  },
+                });
+                remainingQuantity = 0;
+              } else {
+                await tx.stockBatch.update({
+                  where: { id: stockBatch.id },
+                  data: { stockQuantity: 0 },
+                });
+
+                // Create stock record
+                await tx.stockRecord.create({
+                  data: {
+                    productId: item.productId,
+                    changeInStock: -stockBatch.stockQuantity,
+                    createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                    orderId: orderId,
+                    stockBatchId: stockBatch.id,
+                    reason: "ASSIGNED_TO_ORDER",
+                  },
+                });
+                remainingQuantity -= stockBatch.stockQuantity;
+              }
+            }
+          }
+        }
+      }
+
+      return { updatedOrder, updatedOrderItems };
+    });
+
+    // Get the complete updated order with all relations
+    const completeOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      data: {
-        status,
-        customerId,
-        vehicleId,
-        deliveryAddressId,
-        totalPrice,
-        originalOrderId,
-        stockRecordId,
-      },
       include: {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
-        stockRecord: true,
+        StockRecord: true,
         OrderItem: {
           include: {
             Product: true,
@@ -447,7 +545,10 @@ export const updateOrder = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ order: updatedOrder });
+    res.json({ 
+      order: completeOrder,
+      updatedOrderItems: result.updatedOrderItems,
+    });
   } catch (error) {
     console.error("Error updating order:\n", error);
     res.status(500).json({ message: "Internal server error" });
