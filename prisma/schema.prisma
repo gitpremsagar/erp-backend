@@ -60,7 +60,6 @@ model Product {
   Category           Category             @relation(fields: [categoryId], references: [id])
   OrderItem          OrderItem[]
   StockRecord        StockRecord[]
-  // Stock              Stock[]
   StockBatch         StockBatch[]
   ProductTagRelation ProductTagRelation[]
 }
@@ -177,7 +176,10 @@ model Order {
 enum OrderStatus {
   PENDING
   MODIFYING
+  PACKING_PENDING
   PACKING
+  APPROVAL_PENDING
+  SHIPPING_PENDING
   SHIPPING
   DELIVERED
   COMPLETED
