@@ -1,21 +1,22 @@
 import express from "express";
 import {
-  createStock,
-  getStocks,
-  getStockById,
-  getStockByStockId,
-  updateStock,
-  deleteStock,
+  createStockBatch,
+  getStockBatches,
+  getStockBatchById,
+  getStockBatchesByProductId,
+  updateStockBatch,
+  deleteStockBatch,
   toggleStockArchive,
   getStockStats,
   getStockAlerts,
-} from "../controller/stock.controller";
+} from "../controller/stockBatch.controller";
 import {
-  validateCreateStock,
-  validateUpdateStock,
-  validateStockQuery,
+  validateCreateStockBatch,
+  validateUpdateStockBatch,
+  validateStockBatchQuery,
   validateToggleArchive,
-} from "../middleware/stock.middleware";
+  validateProductId,
+} from "../middleware/stockBatch.middleware";
 import { validateAccessToken } from "../middleware/auth.middleware";
 
 const router = express.Router();
@@ -24,10 +25,13 @@ const router = express.Router();
 // router.use(validateAccessToken);
 
 // Create a new stock entry
-router.post("/", validateCreateStock, createStock);
+router.post("/", validateCreateStockBatch, createStockBatch);
 
 // Get all stock entries with pagination and filtering
-router.get("/", validateStockQuery, getStocks);
+router.get("/", validateStockBatchQuery, getStockBatches);
+
+// Get stock batches by product ID
+router.get("/product/:productId", validateProductId, getStockBatchesByProductId);
 
 // Get stock statistics
 router.get("/stats", getStockStats);
@@ -35,19 +39,17 @@ router.get("/stats", getStockStats);
 // Get stock alerts (expired, low stock, etc.)
 router.get("/alerts", getStockAlerts);
 
-// Get stock by stockId (custom ID provided by admin)
-router.get("/stock-id/:stockId", getStockByStockId);
 
 // Get a single stock entry by ID
-router.get("/:id", getStockById);
+router.get("/:id", getStockBatchById);
 
 // Update a stock entry
-router.put("/:id", validateUpdateStock, updateStock);
+router.put("/:id", validateUpdateStockBatch, updateStockBatch);
 
 // Archive/Unarchive stock
 router.patch("/:id/archive", validateToggleArchive, toggleStockArchive);
 
 // Delete a stock entry
-router.delete("/:id", deleteStock);
+router.delete("/:id", deleteStockBatch);
 
 export default router;

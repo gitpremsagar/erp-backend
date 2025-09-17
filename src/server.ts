@@ -13,7 +13,9 @@ import orderItemRouteHandler from "./route/orderItem.route";
 import customerRouteHandler from "./route/customer.route";
 import deliveryAddressRouteHandler from "./route/deliveryAddress.route";
 import productTagRouteHandler from "./route/productTag.route";
-import stockRouteHandler from "./route/stock.route";
+import stockBatchRouteHandler from "./route/stockBatch.route";
+import stockRecordRouteHandler from "./route/stockRecord.route";
+import supplierRouteHandler from "./route/supplier.route";
 
 const app = express();
 
@@ -44,7 +46,9 @@ app.use("/api/order-items", orderItemRouteHandler);
 app.use("/api/customers", customerRouteHandler);
 app.use("/api/delivery-addresses", deliveryAddressRouteHandler);
 app.use("/api/product-tags", productTagRouteHandler);
-app.use("/api/stocks", stockRouteHandler);
+app.use("/api/stock-batches", stockBatchRouteHandler);
+app.use("/api/stock-records", stockRecordRouteHandler);
+app.use("/api/suppliers", supplierRouteHandler);
 
 const PORT = process.env.PORT || 3008;
 app.listen(PORT, () => {

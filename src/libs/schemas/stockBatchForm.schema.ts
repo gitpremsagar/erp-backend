@@ -1,21 +1,24 @@
 import { z } from "zod";
 
-export const CreateStockSchema = z.object({
-  stockId: z
-    .string()
-    .min(1, "Stock ID is required")
-    .max(50, "Stock ID must be at most 50 characters long")
-    .trim(),
+export const CreateStockBatchSchema = z.object({
   productId: z
     .string()
     .min(24, "Invalid product ID")
     .max(24, "Invalid product ID"),
   manufacturingDate: z
     .string()
-    .datetime("Invalid manufacturing date format"),
+    .refine((date) => {
+      // Accept various date formats: ISO datetime, date only, or common formats
+      const dateObj = new Date(date);
+      return !isNaN(dateObj.getTime());
+    }, "Invalid manufacturing date format"),
   arrivalDate: z
     .string()
-    .datetime("Invalid arrival date format"),
+    .refine((date) => {
+      // Accept various date formats: ISO datetime, date only, or common formats
+      const dateObj = new Date(date);
+      return !isNaN(dateObj.getTime());
+    }, "Invalid arrival date format"),
   validityMonths: z
     .number()
     .int("Validity months must be an integer")
@@ -30,7 +33,8 @@ export const CreateStockSchema = z.object({
     .string()
     .min(24, "Invalid supplier ID")
     .max(24, "Invalid supplier ID")
-    .optional(),
+    .optional()
+    .nullable(),
   stockQuantity: z
     .number()
     .int("Stock quantity must be an integer")
@@ -42,9 +46,9 @@ export const CreateStockSchema = z.object({
     .optional(),
 });
 
-export const UpdateStockSchema = CreateStockSchema.partial().omit({ stockId: true });
+export const UpdateStockBatchSchema = CreateStockBatchSchema.partial();
 
-export const StockQuerySchema = z.object({
+export const StockBatchQuerySchema = z.object({
   page: z.string().optional().transform(val => val ? parseInt(val) : 1),
   limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
   search: z.string().optional(),

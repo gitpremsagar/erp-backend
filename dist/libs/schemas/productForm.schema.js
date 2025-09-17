@@ -42,39 +42,6 @@ exports.CreateProductSchema = zod_1.z.object({
         .trim()
         .optional(),
     tagIds: zod_1.z.array(zod_1.z.string().min(24, "Invalid tag ID").max(24, "Invalid tag ID")).optional(),
-    // Stock related fields (optional for product creation)
-    stockId: zod_1.z
-        .string()
-        .min(1, "Stock ID is required if creating stock")
-        .optional(),
-    manufacturingDate: zod_1.z
-        .string()
-        .datetime("Invalid manufacturing date format")
-        .optional(),
-    arrivalDate: zod_1.z
-        .string()
-        .datetime("Invalid arrival date format")
-        .optional(),
-    validityMonths: zod_1.z
-        .number()
-        .int("Validity months must be an integer")
-        .min(1, "Validity months must be at least 1")
-        .optional(),
-    supplierName: zod_1.z
-        .string()
-        .max(200, "Supplier name must be at most 200 characters long")
-        .trim()
-        .optional(),
-    supplierId: zod_1.z
-        .string()
-        .min(24, "Invalid supplier ID")
-        .max(24, "Invalid supplier ID")
-        .optional(),
-    stockQuantity: zod_1.z
-        .number()
-        .int("Stock quantity must be an integer")
-        .min(0, "Stock quantity cannot be negative")
-        .optional(),
 });
 exports.UpdateProductSchema = exports.CreateProductSchema.partial();
 exports.ProductQuerySchema = zod_1.z.object({

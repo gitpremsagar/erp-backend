@@ -85,7 +85,7 @@ export const createOrderItem = async (req: Request, res: Response) => {
     //     productId,
     //     changeInStock: -quantity,
     //     createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
-    //     stockId: "default", // TODO: Replace with actual stock ID
+    //     stockId: "default", // TODO: Replace with actual stock ID (use stock.id from Stock model)
     //     reason: "DELIVERED_TO_CUSTOMER",
     //   },
     // });
@@ -266,7 +266,7 @@ export const updateOrderItem = async (req: Request, res: Response) => {
           productId: existingOrderItem.productId,
           changeInStock: -quantityDifference,
           createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
-          stockId: "default", // TODO: Replace with actual stock ID
+          stockBatchId: "default", // TODO: Replace with actual stock batch ID
           reason: "DELIVERED_TO_CUSTOMER",
         },
       });
@@ -323,7 +323,7 @@ export const deleteOrderItem = async (req: Request, res: Response) => {
         productId: existingOrderItem.productId,
         changeInStock: existingOrderItem.quantity,
         createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
-        stockId: "default", // TODO: Replace with actual stock ID
+        stockBatchId: "default", // TODO: Replace with actual stock batch ID
         reason: "CORRECTION_BY_ADMIN",
       },
     });
