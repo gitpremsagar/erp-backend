@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerId, orderItems, vehicleId } = req.body;
+    const { customerId, orderItems, vehicleId, orderGeneratorId } = req.body;
 
     // Check if customer exists
     const customer = await prisma.user.findUnique({
@@ -69,43 +69,46 @@ export const createOrder = async (req: Request, res: Response) => {
         });
 
         //reduce stock quantity from stockbatches
-        for (const stockBatch of stockBatches) {        
-          if (stockBatch.stockQuantity >= item.quantity) {
+        let remainingQuantity = item.quantity;
+        for (const stockBatch of stockBatches) {
+          if (remainingQuantity <= 0) break;
+
+          if (stockBatch.stockQuantity >= remainingQuantity) {
             await tx.stockBatch.update({
               where: { id: stockBatch.id },
-              data: { stockQuantity: stockBatch.stockQuantity - item.quantity },
+              data: { stockQuantity: stockBatch.stockQuantity - remainingQuantity },
             });
 
             //create stock record
             await tx.stockRecord.create({
               data: {
                 productId: item.productId,
-                changeInStock: -item.quantity,
-                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                changeInStock: -remainingQuantity,
+                createdBy: orderGeneratorId,
                 orderId: newOrder.id,
                 stockBatchId: stockBatch.id,
                 reason: "ASSIGNED_TO_ORDER",
               },
             });
-            break;
+            remainingQuantity = 0;
           } else {
             await tx.stockBatch.update({
               where: { id: stockBatch.id },
               data: { stockQuantity: 0 },
             });
-            item.quantity = item.quantity - stockBatch.stockQuantity;
-
+            
             //create stock record
             await tx.stockRecord.create({
               data: {
                 productId: item.productId,
                 changeInStock: -stockBatch.stockQuantity,
-                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                createdBy: orderGeneratorId,
                 orderId: newOrder.id,
                 stockBatchId: stockBatch.id,
                 reason: "ASSIGNED_TO_ORDER",
               },
             });
+            remainingQuantity -= stockBatch.stockQuantity;
           }
         }
       }
@@ -179,14 +182,6 @@ export const getOrders = async (req: Request, res: Response) => {
         include: {
           customer: true,
           vehicle: true,
-          deliveryAddress: true,
-          StockRecord: true,
-          OrderItem: {
-            include: {
-              Product: true,
-              Customer: true,
-            },
-          },
         },
         orderBy: {
           orderDate: "desc",
@@ -250,11 +245,16 @@ export const getOrderById = async (req: Request, res: Response) => {
         customer: true,
         vehicle: true,
         deliveryAddress: true,
-        StockRecord: true,
         OrderItem: {
           include: {
-            Product: true,
-            Customer: true,
+            Product: {
+              select: {
+                name: true,
+                productCode: true,
+                imageUrl: true,
+                mrp: true,
+              },
+            }
           },
         },
       },
@@ -363,8 +363,8 @@ export const updateOrder = async (req: Request, res: Response) => {
       status,
       customerId,
       vehicleId,
-      originalOrderId,
       stockRecordId,
+      orderUpdaterId,
       orderItems, // Add support for updating order items
     } = req.body;
 
@@ -399,15 +399,6 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    if (originalOrderId) {
-      const originalOrder = await prisma.order.findUnique({
-        where: { id: originalOrderId },
-      });
-      if (!originalOrder) {
-        return res.status(404).json({ message: "Original order not found" });
-      }
-    }
-
     if (stockRecordId) {
       const stockRecord = await prisma.stockRecord.findUnique({
         where: { id: stockRecordId },
@@ -417,19 +408,6 @@ export const updateOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Validate order items if provided
-    if (orderItems && orderItems.length > 0) {
-      for (const item of orderItems) {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-        });
-        if (!product) {
-          return res.status(404).json({ 
-            message: `Product with ID ${item.productId} not found` 
-          });
-        }
-      }
-    }
 
     // Update order and related data in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -440,7 +418,6 @@ export const updateOrder = async (req: Request, res: Response) => {
           status,
           customerId,
           vehicleId,
-          originalOrderId,
           stockRecordId,
         },
       });
@@ -494,7 +471,7 @@ export const updateOrder = async (req: Request, res: Response) => {
                   data: {
                     productId: item.productId,
                     changeInStock: -remainingQuantity,
-                    createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                    createdBy: orderUpdaterId,
                     orderId: orderId,
                     stockBatchId: stockBatch.id,
                     reason: "ASSIGNED_TO_ORDER",
@@ -512,7 +489,7 @@ export const updateOrder = async (req: Request, res: Response) => {
                   data: {
                     productId: item.productId,
                     changeInStock: -stockBatch.stockQuantity,
-                    createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                    createdBy: orderUpdaterId,
                     orderId: orderId,
                     stockBatchId: stockBatch.id,
                     reason: "ASSIGNED_TO_ORDER",
