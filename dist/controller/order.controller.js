@@ -6,7 +6,7 @@ const prisma = new client_1.PrismaClient();
 // Create a new order
 const createOrder = async (req, res) => {
     try {
-        const { customerId, orderItems, vehicleId } = req.body;
+        const { customerId, orderItems, vehicleId, orderGeneratorId } = req.body;
         // Check if customer exists
         const customer = await prisma.user.findUnique({
             where: { id: customerId },
@@ -60,42 +60,45 @@ const createOrder = async (req, res) => {
                     orderBy: { expiryDate: "desc" },
                 });
                 //reduce stock quantity from stockbatches
+                let remainingQuantity = item.quantity;
                 for (const stockBatch of stockBatches) {
-                    if (stockBatch.stockQuantity >= item.quantity) {
+                    if (remainingQuantity <= 0)
+                        break;
+                    if (stockBatch.stockQuantity >= remainingQuantity) {
                         await tx.stockBatch.update({
                             where: { id: stockBatch.id },
-                            data: { stockQuantity: stockBatch.stockQuantity - item.quantity },
+                            data: { stockQuantity: stockBatch.stockQuantity - remainingQuantity },
                         });
                         //create stock record
                         await tx.stockRecord.create({
                             data: {
                                 productId: item.productId,
-                                changeInStock: -item.quantity,
-                                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                                changeInStock: -remainingQuantity,
+                                createdBy: orderGeneratorId,
                                 orderId: newOrder.id,
                                 stockBatchId: stockBatch.id,
                                 reason: "ASSIGNED_TO_ORDER",
                             },
                         });
-                        break;
+                        remainingQuantity = 0;
                     }
                     else {
                         await tx.stockBatch.update({
                             where: { id: stockBatch.id },
                             data: { stockQuantity: 0 },
                         });
-                        item.quantity = item.quantity - stockBatch.stockQuantity;
                         //create stock record
                         await tx.stockRecord.create({
                             data: {
                                 productId: item.productId,
                                 changeInStock: -stockBatch.stockQuantity,
-                                createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                                createdBy: orderGeneratorId,
                                 orderId: newOrder.id,
                                 stockBatchId: stockBatch.id,
                                 reason: "ASSIGNED_TO_ORDER",
                             },
                         });
+                        remainingQuantity -= stockBatch.stockQuantity;
                     }
                 }
             }
@@ -154,14 +157,6 @@ const getOrders = async (req, res) => {
                 include: {
                     customer: true,
                     vehicle: true,
-                    deliveryAddress: true,
-                    StockRecord: true,
-                    OrderItem: {
-                        include: {
-                            Product: true,
-                            Customer: true,
-                        },
-                    },
                 },
                 orderBy: {
                     orderDate: "desc",
@@ -222,11 +217,16 @@ const getOrderById = async (req, res) => {
                 customer: true,
                 vehicle: true,
                 deliveryAddress: true,
-                StockRecord: true,
                 OrderItem: {
                     include: {
-                        Product: true,
-                        Customer: true,
+                        Product: {
+                            select: {
+                                name: true,
+                                productCode: true,
+                                imageUrl: true,
+                                mrp: true,
+                            },
+                        }
                     },
                 },
             },
@@ -322,7 +322,7 @@ exports.getOrdersByOriginalOrderId = getOrdersByOriginalOrderId;
 const updateOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status, customerId, vehicleId, originalOrderId, stockRecordId, orderItems, // Add support for updating order items
+        const { status, customerId, vehicleId, stockRecordId, orderUpdaterId, orderItems, // Add support for updating order items
          } = req.body;
         // Check if order exists
         const existingOrder = await prisma.order.findUnique({
@@ -351,33 +351,12 @@ const updateOrder = async (req, res) => {
                 return res.status(404).json({ message: "Vehicle not found" });
             }
         }
-        if (originalOrderId) {
-            const originalOrder = await prisma.order.findUnique({
-                where: { id: originalOrderId },
-            });
-            if (!originalOrder) {
-                return res.status(404).json({ message: "Original order not found" });
-            }
-        }
         if (stockRecordId) {
             const stockRecord = await prisma.stockRecord.findUnique({
                 where: { id: stockRecordId },
             });
             if (!stockRecord) {
                 return res.status(404).json({ message: "Stock record not found" });
-            }
-        }
-        // Validate order items if provided
-        if (orderItems && orderItems.length > 0) {
-            for (const item of orderItems) {
-                const product = await prisma.product.findUnique({
-                    where: { id: item.productId },
-                });
-                if (!product) {
-                    return res.status(404).json({
-                        message: `Product with ID ${item.productId} not found`
-                    });
-                }
             }
         }
         // Update order and related data in a transaction
@@ -389,7 +368,6 @@ const updateOrder = async (req, res) => {
                     status,
                     customerId,
                     vehicleId,
-                    originalOrderId,
                     stockRecordId,
                 },
             });
@@ -437,7 +415,7 @@ const updateOrder = async (req, res) => {
                                     data: {
                                         productId: item.productId,
                                         changeInStock: -remainingQuantity,
-                                        createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                                        createdBy: orderUpdaterId,
                                         orderId: orderId,
                                         stockBatchId: stockBatch.id,
                                         reason: "ASSIGNED_TO_ORDER",
@@ -455,7 +433,7 @@ const updateOrder = async (req, res) => {
                                     data: {
                                         productId: item.productId,
                                         changeInStock: -stockBatch.stockQuantity,
-                                        createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
+                                        createdBy: orderUpdaterId,
                                         orderId: orderId,
                                         stockBatchId: stockBatch.id,
                                         reason: "ASSIGNED_TO_ORDER",
