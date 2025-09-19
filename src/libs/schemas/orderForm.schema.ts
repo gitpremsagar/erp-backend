@@ -42,8 +42,21 @@ export const CreateOrderSchema = z.object({
   })).min(1, "At least one order item is required"),
 });
 
+
+// enum OrderStatus {
+//   PENDING
+//   MODIFYING
+//   PACKING_PENDING
+//   PACKING
+//   APPROVAL_PENDING
+//   SHIPPING_PENDING
+//   SHIPPING
+//   DELIVERED
+//   COMPLETED
+// }
+
 export const UpdateOrderSchema = z.object({
-  status: z.enum(["PENDING", "MODIFYING", "PACKING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
+  status: z.enum(["PENDING", "MODIFYING", "PACKING_PENDING", "PACKING", "APPROVAL_PENDING", "SHIPPING_PENDING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
   totalPrice: z
     .number()
     .positive("Total price must be a positive number")
