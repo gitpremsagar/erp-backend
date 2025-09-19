@@ -17,7 +17,7 @@ export const createCustomer = async (req: Request, res: Response) => {
       password,
     } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
 
     // Check if user with same email or phone already exists
     const existingUser = await prisma.user.findFirst({
