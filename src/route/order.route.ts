@@ -15,6 +15,7 @@ import {
   validateOrderQuery,
 } from "../middleware/order.middleware";
 import { validateAccessToken } from "../middleware/auth.middleware";
+import { getCustomerProductOrderHistory } from "../controller/orderItem.controller";
 
 const router = express.Router();
 
@@ -35,6 +36,9 @@ router.get("/:orderId", getOrderById);
 
 // Get a single order by custom order ID
 router.get("/custom/:customOrderId", getOrderByCustomOrderId);
+
+// Get order history by customer ID and product ID
+router.get("/customer-product-order-history/:customerId/:productId", getCustomerProductOrderHistory);
 
 // Get orders by original order ID
 router.get("/original/:originalOrderId", validateOrderQuery, getOrdersByOriginalOrderId);
