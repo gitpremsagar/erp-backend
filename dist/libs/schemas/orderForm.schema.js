@@ -43,8 +43,19 @@ exports.CreateOrderSchema = zod_1.z.object({
             .positive("Quantity must be positive"),
     })).min(1, "At least one order item is required"),
 });
+// enum OrderStatus {
+//   PENDING
+//   MODIFYING
+//   PACKING_PENDING
+//   PACKING
+//   APPROVAL_PENDING
+//   SHIPPING_PENDING
+//   SHIPPING
+//   DELIVERED
+//   COMPLETED
+// }
 exports.UpdateOrderSchema = zod_1.z.object({
-    status: zod_1.z.enum(["PENDING", "MODIFYING", "PACKING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
+    status: zod_1.z.enum(["PENDING", "MODIFYING", "PACKING_PENDING", "PACKING", "APPROVAL_PENDING", "SHIPPING_PENDING", "SHIPPING", "DELIVERED", "COMPLETED"]).optional(),
     totalPrice: zod_1.z
         .number()
         .positive("Total price must be a positive number")
