@@ -77,19 +77,6 @@ export const createOrderItem = async (req: Request, res: Response) => {
       },
     });
 
-    // Stock is managed through StockRecord, no direct update needed
-
-    // Create stock entry record
-    // await prisma.stockRecord.create({
-    //   data: {
-    //     productId,
-    //     changeInStock: -quantity,
-    //     createdBy: "system", // TODO: Replace with actual user ID when auth is implemented
-    //     stockId: "default", // TODO: Replace with actual stock ID (use stock.id from Stock model)
-    //     reason: "DELIVERED_TO_CUSTOMER",
-    //   },
-    // });
-
     res.status(201).json({ orderItem });
   } catch (error) {
     console.error("Error creating order item:\n", error);
