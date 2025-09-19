@@ -51,7 +51,7 @@ exports.createEmployee = createEmployee;
 const getEmployees = async (req, res) => {
     console.log(req.query);
     try {
-        const { page = 1, limit = 10, search, } = req.query;
+        const { page = 1, limit = 1000, search, } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
         // Build where clause
         const where = {
