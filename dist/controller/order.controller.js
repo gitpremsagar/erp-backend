@@ -361,15 +361,23 @@ const updateOrder = async (req, res) => {
         }
         // Update order and related data in a transaction
         const result = await prisma.$transaction(async (tx) => {
-            // Update the order
+            // Update the order - only update fields that are provided
+            const updateData = {};
+            if (status !== undefined) {
+                updateData.status = status;
+            }
+            if (customerId !== undefined) {
+                updateData.customerId = customerId;
+            }
+            if (vehicleId !== undefined) {
+                updateData.vehicleId = vehicleId;
+            }
+            if (stockRecordId !== undefined) {
+                updateData.stockRecordId = stockRecordId;
+            }
             const updatedOrder = await tx.order.update({
                 where: { id: orderId },
-                data: {
-                    status,
-                    customerId,
-                    vehicleId,
-                    stockRecordId,
-                },
+                data: updateData,
             });
             // Handle order items updates if provided
             let updatedOrderItems = [];

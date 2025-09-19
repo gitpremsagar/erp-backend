@@ -1,0 +1,241 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteEmployee = exports.updateEmployee = exports.getEmployeeById = exports.getEmployeeStats = exports.getEmployees = exports.createEmployee = void 0;
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+// Create a new employee (user with EMPLOYEE privilege)
+const createEmployee = async (req, res) => {
+    try {
+        const { name, aadharNumber, email, phone, address, pan, password, } = req.body;
+        console.log(req.body);
+        // Check if user with same email or phone already exists
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { phone },
+                    ...(aadharNumber ? [{ aadharNumber }] : []),
+                    ...(pan ? [{ pan }] : []),
+                ],
+            },
+        });
+        if (existingUser) {
+            return res.status(409).json({
+                message: "User with same email, phone, Aadhar, or PAN already exists"
+            });
+        }
+        // Hash the password
+        const bcrypt = require("bcrypt");
+        const hashedPassword = await bcrypt.hash(password || "defaultPassword123", +process.env.BCRYPT_SALT_ROUNDS || 10);
+        const employee = await prisma.user.create({
+            data: {
+                name,
+                email,
+                phone,
+                password: hashedPassword,
+                userType: "EMPLOYEE",
+                aadharNumber,
+                pan,
+                address,
+            },
+        });
+        res.status(201).json({ employee });
+    }
+    catch (error) {
+        console.error("Error creating employee:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.createEmployee = createEmployee;
+// Get all employees with pagination and search
+const getEmployees = async (req, res) => {
+    console.log(req.query);
+    try {
+        const { page = 1, limit = 10, search, } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        // Build where clause
+        const where = {
+            userType: "EMPLOYEE",
+        };
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { phone: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+        const [employees, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                skip,
+                take: Number(limit),
+                orderBy: {
+                    createdAt: "desc",
+                },
+            }),
+            prisma.user.count({ where }),
+        ]);
+        const totalPages = Math.ceil(total / Number(limit));
+        res.json({
+            employees,
+            pagination: {
+                currentPage: Number(page),
+                totalPages,
+                totalItems: total,
+                itemsPerPage: Number(limit),
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching employees:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.getEmployees = getEmployees;
+// Get employee statistics
+const getEmployeeStats = async (req, res) => {
+    try {
+        const [totalEmployees, employeesWithStockRecords] = await Promise.all([
+            prisma.user.count({
+                where: { userType: "EMPLOYEE" },
+            }),
+            prisma.user.count({
+                where: {
+                    userType: "EMPLOYEE",
+                    StockRecord: {
+                        some: {},
+                    },
+                },
+            }),
+        ]);
+        res.json({
+            totalEmployees,
+            employeesWithStockRecords,
+            employeesWithoutStockRecords: totalEmployees - employeesWithStockRecords,
+        });
+    }
+    catch (error) {
+        console.error("Error fetching employee statistics:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.getEmployeeStats = getEmployeeStats;
+// Get a single employee by ID
+const getEmployeeById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const employee = await prisma.user.findUnique({
+            where: { id },
+            include: {
+                StockRecord: {
+                    include: {
+                        Product: true,
+                        StockBatch: true,
+                        Order: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+            },
+        });
+        if (!employee) {
+            return res.status(404).json({ message: "Employee not found" });
+        }
+        // Check if user is actually an employee
+        if (employee.userType !== "EMPLOYEE") {
+            return res.status(400).json({ message: "User is not an employee" });
+        }
+        res.json({ employee });
+    }
+    catch (error) {
+        console.error("Error fetching employee:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.getEmployeeById = getEmployeeById;
+// Update an employee
+const updateEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        // Check if employee exists and is actually an employee
+        const existingEmployee = await prisma.user.findUnique({
+            where: { id },
+        });
+        if (!existingEmployee) {
+            return res.status(404).json({ message: "Employee not found" });
+        }
+        if (existingEmployee.userType !== "EMPLOYEE") {
+            return res.status(400).json({ message: "User is not an employee" });
+        }
+        // Check for conflicts with other users if updating unique fields
+        if (updateData.email || updateData.phone || updateData.aadharNumber || updateData.pan) {
+            const conflictUser = await prisma.user.findFirst({
+                where: {
+                    AND: [
+                        { id: { not: id } },
+                        {
+                            OR: [
+                                ...(updateData.email ? [{ email: updateData.email }] : []),
+                                ...(updateData.phone ? [{ phone: updateData.phone }] : []),
+                                ...(updateData.aadharNumber ? [{ aadharNumber: updateData.aadharNumber }] : []),
+                                ...(updateData.pan ? [{ pan: updateData.pan }] : []),
+                            ],
+                        },
+                    ],
+                },
+            });
+            if (conflictUser) {
+                return res.status(409).json({
+                    message: "User with same email, phone, Aadhar, or PAN already exists"
+                });
+            }
+        }
+        const updatedEmployee = await prisma.user.update({
+            where: { id },
+            data: updateData,
+        });
+        res.json({ employee: updatedEmployee });
+    }
+    catch (error) {
+        console.error("Error updating employee:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.updateEmployee = updateEmployee;
+// Delete an employee
+const deleteEmployee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Check if employee exists and is actually an employee
+        const employee = await prisma.user.findUnique({
+            where: { id },
+            include: {
+                StockRecord: true,
+            },
+        });
+        if (!employee) {
+            return res.status(404).json({ message: "Employee not found" });
+        }
+        if (employee.userType !== "EMPLOYEE") {
+            return res.status(400).json({ message: "User is not an employee" });
+        }
+        // Check if employee has stock records
+        if (employee.StockRecord.length > 0) {
+            return res.status(400).json({
+                message: "Cannot delete employee with existing stock records. Please reassign stock records first."
+            });
+        }
+        await prisma.user.delete({
+            where: { id },
+        });
+        res.json({ message: "Employee deleted successfully" });
+    }
+    catch (error) {
+        console.error("Error deleting employee:\n", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+exports.deleteEmployee = deleteEmployee;
+//# sourceMappingURL=employee.controller.js.map

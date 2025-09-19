@@ -1,1 +1,0 @@
-1. It's not possible to add item to order which has 0 items in batch. So there should a way to add stock which will be considered in transit.
