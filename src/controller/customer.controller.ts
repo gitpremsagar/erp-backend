@@ -246,6 +246,7 @@ export const updateCustomer = async (req: Request, res: Response) => {
 
 // Delete a customer
 export const deleteCustomer = async (req: Request, res: Response) => {
+  // console.log("deleteCustomer called");
   try {
     const { id } = req.params;
 
@@ -254,6 +255,7 @@ export const deleteCustomer = async (req: Request, res: Response) => {
       where: { id },
       include: {
         Order: true,
+        StockRecord: true,
       },
     });
 
@@ -268,13 +270,31 @@ export const deleteCustomer = async (req: Request, res: Response) => {
     // Check if customer has orders
     if (customer.Order.length > 0) {
       return res.status(400).json({ 
-        message: "Cannot delete customer with existing orders. Please delete orders first." 
+        message: "Cannot delete customer with existing orders. Please delete orders belonging to this customer first." 
       });
     }
 
-    await prisma.user.delete({
-      where: { id },
-    });
+    // delete customer's stock records, orders, order items and customer in transaction
+    await prisma.$transaction(async (tx) =>{
+      await tx.stockRecord.deleteMany({
+        where: {
+          createdBy: id,
+        }
+      })
+      await tx.order.deleteMany({
+        where: {
+          customerId: id,
+        }
+      })
+      await tx.orderItem.deleteMany({
+        where: {
+          customerId: id,
+        }
+      })
+      await tx.user.delete({
+        where: { id },
+      })
+    })
 
     res.json({ message: "Customer deleted successfully" });
   } catch (error) {
