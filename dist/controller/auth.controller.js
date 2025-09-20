@@ -78,13 +78,16 @@ const signin = async (req, res) => {
     res
         .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: +process.env.REFRESH_TOKEN_COOKIE_EXPIRY,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
     })
         .cookie("accessToken", accessToken, {
+        httpOnly: false, // Keep false so frontend can access it
+        secure: process.env.NODE_ENV === "production",
         maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
     })
         .json({ accessToken, user: userData });
@@ -98,13 +101,16 @@ const signout = async (req, res) => {
         .status(200)
         .cookie("refreshToken", "", {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         maxAge: 0,
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
     })
         .cookie("accessToken", "", {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
         maxAge: 0,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
     })
         .json({ success: true, message: "Logged out successfully" });
@@ -138,7 +144,10 @@ const refreshAccessToken = async (req, res) => {
         res
             .status(200)
             .cookie("accessToken", accessToken, {
+            httpOnly: false, // Keep false so frontend can access it
+            secure: process.env.NODE_ENV === "production",
             maxAge: +process.env.ACCESS_TOKEN_COOKIE_EXPIRY,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             path: "/",
         })
             .json({ accessToken, user: userData });
