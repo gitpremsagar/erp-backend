@@ -7,7 +7,7 @@ const prisma = new client_1.PrismaClient();
 const createEmployee = async (req, res) => {
     try {
         const { name, aadharNumber, email, phone, address, pan, password, } = req.body;
-        console.log(req.body);
+        // console.log(req.body);
         // Check if user with same email or phone already exists
         const existingUser = await prisma.user.findFirst({
             where: {
